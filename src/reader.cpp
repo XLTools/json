@@ -160,11 +160,32 @@ static void parseString(std::istream &stream,
         c = stream.get();
         if (escape) {
             switch (c) {
-                case '/':
-                    string += '/';
+                case 'n':
+                    string += '\n';
+                    break;
+                case 't':
+                    string += '\t';
+                    break;
+                case 'r':
+                    string += '\r';
+                    break;
+                case 'f':
+                    string += '\f';
+                    break;
+                case 'b':
+                    string += '\b';
                     break;
                 case 'u':
                     parseCodepoint(stream, string);
+                    break;
+                case '/':
+                    string += '/';
+                    break;
+                case '\\':
+                    string += '\\';
+                    break;
+                case '"':
+                    string += '"';
                     break;
                 default:
                     string += '\\';
@@ -281,9 +302,9 @@ static void parseNumber(std::istream &stream,
     char c;
     while (true) {
         c = stream.peek();
-        if ((c >= '0' && c <= '9') || c == '.') {
+        if ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
             string += stream.get();
-        } else if (!strchr(CONTROL, c)) {
+        } else if (!(strchr(CONTROL, c) || c == EOF || c == '\0')) {
             throw ParserError("Unrecognized values in number.");
         } else {
             break;
