@@ -7,7 +7,7 @@ project(JSON CXX)
 # FLAGS
 # -----
 
-set_property(GLOBAL PROPERTY CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CXX_STANDARD TRUE)
 if(UNIX)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -16,6 +16,7 @@ endif()
 
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build JSON library tests" OFF)
+option(BUILD_FUZZ "Build fuzz testing" OFF)
 
 # LIBRARY
 # -------
@@ -31,7 +32,7 @@ set(SOURCE_FILES
     src/writer.cpp
 )
 
-if (BUILD_STATIC)
+if(BUILD_STATIC)
     add_library(JSON STATIC ${SOURCE_FILES})
 else()
     add_library(JSON SHARED ${SOURCE_FILES})
@@ -49,7 +50,7 @@ set(TEST_FILES
     test/writer.cpp
 )
 
-if (BUILD_TESTS)
+if(BUILD_TESTS)
     if(NOT TARGET gtest)
         add_subdirectory(googletest)
     endif()
@@ -64,4 +65,19 @@ if (BUILD_TESTS)
         COMMAND $<TARGET_FILE:JSON_TESTS>
         DEPENDS JSON_TESTS
     )
+endif()
+
+
+if(BUILD_FUZZ AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(LLVM_USE_SANITIZE_COVERAGE ON)
+    set(LLVM_USE_SANITIZER "Address")
+    if(NOT TARGET LLVMFuzzer)
+        add_subdirectory(Fuzzer)
+    endif()
+
+    add_executable(JSONFuzzReader test/fuzz/reader.cpp)
+    add_executable(JSONFuzzWriter test/fuzz/writer.cpp)
+
+    target_link_libraries(JSONFuzzReader LLVMFuzzer JSON)
+    target_link_libraries(JSONFuzzWriter LLVMFuzzer JSON)
 endif()
