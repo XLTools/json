@@ -42,6 +42,7 @@ endif()
 
 set(TEST_FILES
     test/main.cpp
+    test/benchmark.cpp
     test/data.cpp
     test/rfc7419.cpp
     test/reader.cpp
