@@ -29,12 +29,14 @@ enum class NodeType: uint8_t
  */
 enum class ValueType: uint8_t
 {
-    NULLPTR     = 0,
-    NUMBER      = 1,
-    BOOLEAN     = 2,
-    STRING      = 3,
-    ARRAY       = 4,
-    OBJECT      = 5,
+    NULLPTR         = 0,
+    NUMBER          = 1,
+    BOOLEAN         = 2,
+    STRING          = 3,
+    ARRAY_START     = 4,
+    OBJECT_START    = 5,
+    ARRAY_END       = 6,
+    OBJECT_END      = 7,
 };
 
 }   /* json */

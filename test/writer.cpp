@@ -24,29 +24,26 @@ TEST(TextWriter, WriteMap)
         {5, 6},
     };
 
-    std::ostringstream buffer;
-    json::TextWriter writer(buffer);
+    json::StringTextWriter writer;
     writer.write(m);
-    EXPECT_EQ(buffer.str(), "{1:2,3:4,5:6}");
+    EXPECT_EQ(writer.str(), "{1:2,3:4,5:6}");
 }
 
 
 TEST(TextWriter, NodelessInt)
 {
-    std::ostringstream buffer;
-    json::TextWriter writer(buffer);
+    json::StringTextWriter writer;
     ASSERT_THROW(writer.write(1), json::NodeError);
 }
 
 
 TEST(TextWriter, Int)
 {
-    std::ostringstream buffer;
-    json::TextWriter writer(buffer);
+    json::StringTextWriter writer;
     writer.startArray();
     writer.write(1);
     writer.endArray();
-    EXPECT_EQ(buffer.str(), "[1]");
+    EXPECT_EQ(writer.str(), "[1]");
 }
 
 
@@ -54,13 +51,12 @@ TEST(TextWriter, IntList)
 {
     std::vector<int> v = {1};
 
-    std::ostringstream buffer;
-    json::TextWriter writer(buffer);
+    json::StringTextWriter writer;
     writer.startArray();
     writer.write(1);
     writer.write(v);
     writer.endArray();
-    EXPECT_EQ(buffer.str(), "[1,[1]]");
+    EXPECT_EQ(writer.str(), "[1,[1]]");
 }
 
 
@@ -73,12 +69,11 @@ TEST(TextWriter, IntListDict)
         {5, 6},
     };
 
-    std::ostringstream buffer;
-    json::TextWriter writer(buffer);
+    json::StringTextWriter writer;
     writer.startArray();
     writer.write(1);
     writer.write(v);
     writer.write(m);
     writer.endArray();
-    EXPECT_EQ(buffer.str(), "[1,[1],{1:2,3:4,5:6}]");
+    EXPECT_EQ(writer.str(), "[1,[1],{1:2,3:4,5:6}]");
 }

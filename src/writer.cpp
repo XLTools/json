@@ -79,11 +79,20 @@ void TextWriter::writeKeyDelimiter()
 }
 
 
+/** \brief Open JSON text writer.
+ */
+void TextWriter::open(std::ostream &stream)
+{
+    this->stream = &stream;
+}
+
+
 /** \brief Initializer list constructor.
  */
-TextWriter::TextWriter(std::ostream &stream):
-    stream(&stream)
-{}
+TextWriter::TextWriter(std::ostream &stream)
+{
+    open(stream);
+}
 
 
 /** \brief Get depth of current reader.
@@ -193,5 +202,32 @@ bool TextWriter::endArray()
 
     return true;
 }
+
+
+/** \brief Initialize from path.
+ */
+FileTextWriter::FileTextWriter(const std::string &path):
+    fstream(path, std::ios::out | std::ios::binary | std::ios::trunc)
+{
+    open(fstream);
+}
+
+
+/** \brief Initialize from data.
+ */
+StringTextWriter::StringTextWriter():
+    sstream(std::ios::out | std::ios::binary)
+{
+    open(sstream);
+}
+
+
+/** \brief Get string from stream.
+ */
+std::string StringTextWriter::str() const
+{
+    return sstream.str();
+}
+
 
 }   /* json */

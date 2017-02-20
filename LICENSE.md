@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-JSON draws from other open source projects, including code from `Milo Yip., 2015`. The licenses and attributions for derived works can be found in individual source and header files.
+JSON draws from other open source projects, including code from `Milo Yip., 2015`, and `2013-2017 Niels Lohmann`. The licenses and attributions for derived works can be found in individual source and header files.
 
 All other copyright for project JSON are held by `The Regents of the University of California, 2016-2017`. 
 

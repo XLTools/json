@@ -42,6 +42,8 @@ endif()
 
 set(TEST_FILES
     test/main.cpp
+    test/data.cpp
+    test/rfc7419.cpp
     test/reader.cpp
     test/writer.cpp
 )

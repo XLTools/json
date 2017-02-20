@@ -9,6 +9,7 @@
 
 #include <array>
 #include <deque>
+#include <limits>
 #include <map>
 #include <type_traits>
 #include <unordered_map>
@@ -25,8 +26,82 @@ namespace detail
 template <bool B, typename T = void>
 using enable_if_t = typename std::enable_if<B, T>::type;
 
-// FUNCTIONS
-// ---------
+template <typename T>
+using decay_t = typename std::decay<T>::type;
+
+template <typename T, typename U>
+constexpr bool is_same_v = std::is_same<T, U>::value;
+
+// SIMPLE TYPES
+// ------------
+
+template <typename T>
+struct is_char
+{
+    enum {
+        value = (is_same_v<char, T> || is_same_v<const char, T> || is_same_v<unsigned char, T> || is_same_v<const unsigned char, T>)
+    };
+};
+
+template <typename T>
+constexpr bool is_char_v = is_char<T>::value;
+
+template <typename T>
+struct is_bool
+{
+    enum {
+        value = (is_same_v<bool, T> || is_same_v<const bool, T>)
+    };
+};
+
+template <typename T>
+constexpr bool is_bool_v = is_bool<T>::value;
+
+template <typename T>
+struct is_integer
+{
+    enum {
+        value = (std::numeric_limits<T>::is_integer && !is_bool_v<T> && !is_char_v<T>)
+    };
+};
+
+template <typename T>
+constexpr bool is_integer_v = is_integer<T>::value;
+
+template <typename T>
+struct is_float: std::is_floating_point<T>
+{};
+
+template <typename T>
+constexpr bool is_float_v = is_float<T>::value;
+
+template <typename T>
+struct is_cstr: std::integral_constant<
+        bool,
+        is_same_v<char const *, decay_t<T>> ||
+        is_same_v<char *, decay_t<T>>
+    >
+{};
+
+template <typename T>
+constexpr bool is_cstr_v = is_cstr<T>::value;
+
+template <typename T>
+struct is_std_string: std::is_base_of<std::string, T>
+{};
+
+template <typename T>
+constexpr bool is_std_string_v = is_std_string<T>::value;
+
+template <typename T>
+struct is_string: std::integral_constant<bool, is_cstr_v<T> || is_std_string_v<T>>
+{};
+
+template <typename T>
+constexpr bool is_string_v = is_string<T>::value;
+
+// COLLECTIONS
+// -----------
 
 template <typename... Ts>
 struct is_array: std::false_type

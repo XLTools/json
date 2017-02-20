@@ -1,11 +1,11 @@
-//  :copyright: (c) 2016 The Regents of the University of California.
+//  :copyright: (c) 2013-2017 Niels Lohmann <http://nlohmann.me>.
+//  :copyright: (c) 2016-2017 The Regents of the University of California.
 //  :license: MIT, see LICENSE.md for more details.
 /**
  *  \addtogroup JSON
  *  \brief Implementation of JSON TextReader.
  */
 
-#include "json/except.hpp"
 #include "json/reader.hpp"
 
 #include <cstring>
@@ -31,7 +31,7 @@ void checkEnd(std::deque<NodeType> &node,
     const NodeType type)
 {
     if (node.empty() || node.back() != type) {
-        throw std::invalid_argument("NodeType does not match reader");
+        throw NodeError("NodeType does not match reader");
     }
 }
 
@@ -59,16 +59,118 @@ static bool consume(std::istream &stream,
 }
 
 
+/** \brief Convert code points to UTF-8.
+ */
+static std::string toUnicode(const size_t codepoint1,
+    const size_t codepoint2 = 0)
+{
+    // calculate the code point from the given code points
+    size_t codepoint = codepoint1;
+
+    // check if codepoint1 is a high surrogate
+    if (codepoint1 >= 0xD800 and codepoint1 <= 0xDBFF)
+    {
+        // check if codepoint2 is a low surrogate
+        if (codepoint2 >= 0xDC00 and codepoint2 <= 0xDFFF) {
+            // high surrogate occupies the most significant 22 bits
+            // low surrogate occupies the least significant 15 bits
+            codepoint = (codepoint1 << 10) + codepoint2 - 0x35FDC00;
+        } else {
+            throw ParserError("Invalid low surrogate.");
+        }
+    }
+
+    std::string result;
+    if (codepoint < 0x80) {
+        // 1-byte characters: 0xxxxxxx (ASCII)
+        result.append(1, static_cast<char>(codepoint));
+    } else if (codepoint <= 0x7ff) {
+        // 2-byte characters: 110xxxxx 10xxxxxx
+        result.append(1, static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
+        result.append(1, static_cast<char>(0x80 | (codepoint & 0x3F)));
+    } else if (codepoint <= 0xffff) {
+        // 3-byte characters: 1110xxxx 10xxxxxx 10xxxxxx
+        result.append(1, static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
+        result.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+        result.append(1, static_cast<char>(0x80 | (codepoint & 0x3F)));
+    } else if (codepoint <= 0x10ffff) {
+        // 4-byte characters: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        result.append(1, static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
+        result.append(1, static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
+        result.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+        result.append(1, static_cast<char>(0x80 | (codepoint & 0x3F)));
+    } else {
+        ParserError("code points above 0x10FFFF are invalid");
+    }
+
+    return result;
+}
+
+
+/** \brief Parse a \uxxxx or \uxxxx\uyyyy code point.
+ */
+static void parseCodepoint(std::istream &stream,
+    std::string &string)
+{
+    // get \uxxxx code point
+    char *data = new char[5];
+    stream.read(data, 4);
+    data[4] = '\0';
+    auto codepoint = std::strtoul(data, nullptr, 16);
+    delete[] data;
+
+    // check if codepoint is a high surrogate
+    if (codepoint >= 0xD800 and codepoint <= 0xDBFF) {
+        // make sure there is a subsequent unicode
+        if (!(consume(stream, '\\') && consume(stream, 'u'))) {
+            throw ParserError("Missing low surrogate.");
+        }
+
+        // get \uyyyy code point and add codepoint to buffer
+        data = new char[5];
+        stream.read(data, 4);
+        data[4] = '\0';
+        auto codepoint2 = std::strtoul(data, nullptr, 16);
+        delete[] data;
+        string += toUnicode(codepoint, codepoint2);
+
+    } else if (codepoint >= 0xDC00 and codepoint <= 0xDFFF) {
+        // we found a lone low surrogate
+        throw ParserError("Missing high surrogate.");
+    } else {
+        // add unicode character(s)
+        string += toUnicode(codepoint);
+    }
+}
+
+
 /** \brief Parse string from file.
  */
-static void parseString(TextReader &reader)
+static void parseString(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
+    if (!consume(stream, '"')) {
+        throw ParserError("String must begin with \".");
+    }
+
     bool escape = false;
     char c;
     while (true) {
-        c = reader.stream().get();
+        c = stream.get();
         if (escape) {
-            reader.buffer() += c;
+            switch (c) {
+                case '/':
+                    string += '/';
+                    break;
+                case 'u':
+                    parseCodepoint(stream, string);
+                    break;
+                default:
+                    string += '\\';
+                    string += c;
+                    break;
+            }
             escape = false;
             continue;
         }
@@ -77,110 +179,117 @@ static void parseString(TextReader &reader)
         } else if (c == '\\') {
             escape = true;
         } else {
-            reader.buffer() += c;
+            string += c;
         }
     }
-    reader.type() = ValueType::STRING;
+    type = ValueType::STRING;
 }
 
 
 /** \brief Parse null value from file.
  */
-static void parseNull(TextReader &reader)
+static void parseNull(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
-    auto &is = reader.stream();
-    if (consume(is, 'n') && consume(is, 'u') && consume(is, 'l') && consume(is, 'l')) {
-        reader.type() = ValueType::NULLPTR;
-        reader.buffer() = "null";
+    if (consume(stream, 'n') && consume(stream, 'u') && consume(stream, 'l') && consume(stream, 'l')) {
+        type = ValueType::NULLPTR;
+        string = "null";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(is.tellg()));
+        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
 }
 
 
 /** \brief Parse boolean true value from file.
  */
-static void parseTrue(TextReader &reader)
+static void parseTrue(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
-    auto &is = reader.stream();
-    if (consume(is, 't') && consume(is, 'r') && consume(is, 'u') && consume(is, 'e')) {
-        reader.type() = ValueType::BOOLEAN;
-        reader.buffer() = "true";
+    if (consume(stream, 't') && consume(stream, 'r') && consume(stream, 'u') && consume(stream, 'e')) {
+        type = ValueType::BOOLEAN;
+        string = "true";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(is.tellg()));
+        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
 }
 
 
 /** \brief Parse boolean false value from file.
  */
-static void parseFalse(TextReader &reader)
+static void parseFalse(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
-    auto &is = reader.stream();
-    if (consume(is, 'f') && consume(is, 'a') && consume(is, 'l') && consume(is, 's') && consume(is, 'e')) {
-        reader.type() = ValueType::BOOLEAN;
-        reader.buffer() = "false";
+    if (consume(stream, 'f') && consume(stream, 'a') && consume(stream, 'l') && consume(stream, 's') && consume(stream, 'e')) {
+        type = ValueType::BOOLEAN;
+        string = "false";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(is.tellg()));
+        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
 }
 
 
 /** \brief Parse numeric inf value from file.
  */
-static void parseInf(TextReader &reader)
+static void parseInf(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
-    auto &is = reader.stream();
-    if (consume(is, 'i') && consume(is, 'n') && consume(is, 'f')) {
-        reader.type() = ValueType::NUMBER;
-        reader.buffer() += "inf";
+    if (consume(stream, 'i') && consume(stream, 'n') && consume(stream, 'f')) {
+        type = ValueType::NUMBER;
+        string += "inf";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(is.tellg()));
+        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
 }
 
 
 /** \brief Parse numeric NaN value from file.
  */
-static void parseNan(TextReader &reader)
+static void parseNan(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
-    auto &is = reader.stream();
-    if (consume(is, 'N') && consume(is, 'a') && consume(is, 'N')) {
-        reader.type() = ValueType::NUMBER;
-        reader.buffer() = "NaN";
+    if (consume(stream, 'N') && consume(stream, 'a') && consume(stream, 'N')) {
+        type = ValueType::NUMBER;
+        string = "NaN";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(is.tellg()));
+        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
 }
 
 
 /** \brief Parse generic numeric value from file.
  */
-static void parseNumber(TextReader &reader)
+static void parseNumber(std::istream &stream,
+    std::string &string,
+    ValueType &type)
 {
-    // check negative alues
-    bool minus = consume(reader.stream(), '-');
+    // check negative values
+    bool minus = consume(stream, '-');
     if (minus) {
-        reader.buffer() += '-';
+        string += '-';
         // can have a negative inf value, check
-        if (reader.stream().peek() == 'i') {
-            parseInf(reader);
+        if (stream.peek() == 'i') {
+            parseInf(stream, string, type);
             return;
         }
     }
 
     char c;
     while (true) {
-        c = reader.stream().peek();
+        c = stream.peek();
         if ((c >= '0' && c <= '9') || c == '.') {
-            reader.buffer() += reader.stream().get();
+            string += stream.get();
         } else if (!strchr(CONTROL, c)) {
             throw ParserError("Unrecognized values in number.");
         } else {
             break;
         }
     }
-    reader.type() = ValueType::NUMBER;
+    type = ValueType::NUMBER;
 }
 
 
@@ -190,7 +299,7 @@ static void startObject(TextReader &reader)
 {
     reader.node().emplace_back(NodeType::OBJECT);
     reader.offset().emplace_back(0);
-    reader.type() = ValueType::OBJECT;
+    reader.type() = ValueType::OBJECT_START;
     reader.stream().get();
 }
 
@@ -202,6 +311,7 @@ static void endObject(TextReader &reader)
     checkEnd(reader.node(), NodeType::OBJECT);
     reader.node().pop_back();
     reader.offset().pop_back();
+    reader.type() = ValueType::OBJECT_END;
     if (!reader.offset().empty()) {
         ++reader.offset().back();
     }
@@ -216,7 +326,7 @@ static void startArray(TextReader &reader)
 {
     reader.node().emplace_back(NodeType::ARRAY);
     reader.offset().emplace_back(0);
-    reader.type() = ValueType::ARRAY;
+    reader.type() = ValueType::ARRAY_START;
     reader.stream().get();
 }
 
@@ -228,11 +338,26 @@ static void endArray(TextReader &reader)
     checkEnd(reader.node(), NodeType::ARRAY);
     reader.node().pop_back();
     reader.offset().pop_back();
+    reader.type() = ValueType::ARRAY_END;
     if (!reader.offset().empty()) {
         ++reader.offset().back();
     }
 
     reader.stream().get();
+}
+
+
+/** \brief Parse key from JSON reader.
+ */
+static void parseKey(TextReader &reader)
+{
+    switch (reader.stream().peek()) {
+        case '"':
+            parseString(reader.stream(), reader.buffer()[0], reader.type());
+            break;
+        default:
+            throw ParserError("Unexpected characters found for object key.");
+    }
 }
 
 
@@ -254,25 +379,46 @@ static void parseValue(TextReader &reader)
         case ':':
             throw ParserError("Unexpected character delimiters.");
         case '"':
-            parseString(reader);
+            parseString(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
         case 'n':
-            parseNull(reader);
+            parseNull(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
         case 't':
-            parseTrue(reader);
+            parseTrue(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
         case 'f':
-            parseFalse(reader);
+            parseFalse(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
         case 'i':
-            parseInf(reader);
+            parseInf(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
         case 'N':
-            parseNan(reader);
+            parseNan(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
         default:
-            parseNumber(reader);
+            parseNumber(reader.stream(), reader.buffer()[1], reader.type());
+            if (!reader.offset().empty()) {
+                ++reader.offset().back();
+            }
             break;
     }
 }
@@ -315,6 +461,20 @@ static void parseArray(TextReader &reader)
 
 /** \brief Parse key-value pair from an object.
  */
+static void parseObjectImpl(TextReader &reader)
+{
+    parseKey(reader);
+    skipWhitespace(reader.stream());
+    if (!consume(reader.stream(), ':')) {
+        throw ParserError("No : separating key-value pairs.");
+    }
+    skipWhitespace(reader.stream());
+    parseValue(reader);
+}
+
+
+/** \brief Parse key-value pair from an object.
+ */
 static void parseObject(TextReader &reader)
 {
     size_t offset = reader.offset().empty() ? 0 : reader.offset().back();
@@ -324,8 +484,11 @@ static void parseObject(TextReader &reader)
                 throw ParserError("Cannot have comma after [ or {.");
             } else {
                 // item is properly delimited by a comma
-                // TODO: need to parse Key, then value
+                reader.stream().get();
+                skipWhitespace(reader.stream());
+                parseObjectImpl(reader);
             }
+            break;
         }
         case '}': {
             // end element should not have a comma before it.
@@ -335,8 +498,7 @@ static void parseObject(TextReader &reader)
         default: {
             if (offset == 0) {
                 // no preceding elements, no comma expected
-                // TODO: need to parse Key, then value
-                //parseValue(reader);
+                parseObjectImpl(reader);
             } else {
                 throw ParserError("Expected ']' or ',' character.");
             }
@@ -349,7 +511,8 @@ static void parseObject(TextReader &reader)
  */
 static void parse(TextReader &reader)
 {
-    reader.buffer().clear();
+    reader.buffer()[0].clear();
+    reader.buffer()[1].clear();
     skipWhitespace(reader.stream());
 
     if (reader.isArray()) {
@@ -377,11 +540,17 @@ static void readStart(TextReader &reader)
         case '[':
             startArray(reader);
             break;
-        default:
-            throw ParserError("Unexpected leading characters\n");
+        default: {
+            // no root element -- RFC 7159 only
+            parseValue(reader);
+            skipWhitespace(reader.stream());
+            const char c = reader.stream().peek();
+            if (!(c == EOF || c == '\0')) {
+                throw ParserError("Extra data.");
+            }
+        }
     }
 }
-
 
 }   /* detail */
 
@@ -389,14 +558,23 @@ static void readStart(TextReader &reader)
 // -------
 
 
+/** \brief Open text parser.
+ */
+void TextReader::open(std::istream &stream)
+{
+    stream_ = &stream;
+    // reserve 1 Mb, to avoid reallocations
+    buffer()[0].reserve(1048576);
+    buffer()[1].reserve(1048576);
+    detail::readStart(*this);
+}
+
+
 /** \brief Initializer list constructor.
  */
-TextReader::TextReader(std::istream &stream):
-    stream_(&stream)
+TextReader::TextReader(std::istream &stream)
 {
-    // reserve 1 Mb, to avoid reallocations
-    buffer().reserve(1048576);
-    detail::readStart(*this);
+    open(stream);
 }
 
 
@@ -450,7 +628,7 @@ const std::deque<size_t> & TextReader::offset() const
 
 /** \brief Get reference to buffer.
  */
-std::string & TextReader::buffer()
+std::array<std::string, 2> & TextReader::buffer()
 {
     return buffer_;
 }
@@ -458,7 +636,7 @@ std::string & TextReader::buffer()
 
 /** \brief Get const reference to buffer.
  */
-const std::string & TextReader::buffer() const
+const std::array<std::string, 2> & TextReader::buffer() const
 {
     return buffer_;
 }
@@ -575,6 +753,24 @@ bool TextReader::read()
     detail::parse(*this);
 
     return true;
+}
+
+
+/** \brief Initialize from path.
+ */
+FileTextReader::FileTextReader(const std::string &path):
+    fstream(path, std::ios::in | std::ios::binary)
+{
+    open(fstream);
+}
+
+
+/** \brief Initialize from data.
+ */
+StringTextReader::StringTextReader(const std::string &data):
+    sstream(data, std::ios::in | std::ios::binary)
+{
+    open(sstream);
 }
 
 }   /* json */

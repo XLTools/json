@@ -12,7 +12,9 @@
 #include "detail/type.hpp"
 
 #include <deque>
+#include <fstream>
 #include <ostream>
+#include <sstream>
 
 
 namespace json
@@ -21,7 +23,7 @@ namespace json
 // -------
 
 
-/** \brief
+/** \brief Base text writer for JSON serialization.
  */
 class TextWriter
 {
@@ -29,17 +31,15 @@ protected:
     std::ostream *stream = nullptr;
     std::deque<NodeType> node;
     std::deque<size_t> offset;
-//    const bool pretty = false;
-//    const std::string indent;
-//    const std::string space;
-//    const std::string newline;
+
+    TextWriter() = default;
+    void open(std::ostream &stream);
 
     void checkNode(const NodeType type) const;
     void writeValueDelimiter();
     void writeKeyDelimiter();
 
 public:
-    TextWriter() = delete;
     TextWriter(const TextWriter&) = delete;
     TextWriter & operator=(const TextWriter&) = delete;
     TextWriter(TextWriter&&) = default;
@@ -71,7 +71,32 @@ public:
     void write(const T &t, const U &u);
     template <typename T, typename U>
     void write(T &&t, U &&u);
+};
 
+
+/** \brief Text writer for file-backed JSON stores.
+ */
+class FileTextWriter: public TextWriter
+{
+protected:
+    std::ofstream fstream;
+
+public:
+    FileTextWriter(const std::string &path);
+};
+
+
+/** \brief Text writer for string-based JSON stores.
+ */
+class StringTextWriter: public TextWriter
+{
+protected:
+    std::ostringstream sstream;
+
+public:
+    StringTextWriter();
+
+    std::string str() const;
 };
 
 
