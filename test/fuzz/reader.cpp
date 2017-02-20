@@ -14,11 +14,15 @@
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
-//  DoSomethingInterestingWithMyAPI(Data, Size);
+    std::string string(reinterpret_cast<const char*>(Data), Size);
+    try {
+        json::StringTextReader reader(string);
+    } catch (json::Exception) {
+        // catching custom exceptions is fine.
+    }
 
     return 0;
 }
-
 
 
 #endif          // __clang__

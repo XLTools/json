@@ -17,8 +17,7 @@
 
 TEST(TextReader, ReadInt)
 {
-    std::istringstream buffer("[1]");
-    json::TextReader reader(buffer);
+    json::StringTextReader reader("[1]");
     EXPECT_EQ(reader.type(), json::ValueType::ARRAY_START);
     EXPECT_EQ(reader.depth(), 1);
 
@@ -37,8 +36,7 @@ TEST(TextReader, ReadInt)
 
 TEST(TextReader, ReadLeadingComma)
 {
-    std::istringstream buffer("[,1]");
-    json::TextReader reader(buffer);
+    json::StringTextReader reader("[,1]");
     EXPECT_EQ(reader.type(), json::ValueType::ARRAY_START);
 
     ASSERT_THROW(reader.read(), json::ParserError);
@@ -47,8 +45,7 @@ TEST(TextReader, ReadLeadingComma)
 
 TEST(TextReader, ReadTrailingComma)
 {
-    std::istringstream buffer("[1,]");
-    json::TextReader reader(buffer);
+    json::StringTextReader reader("[1,]");
     EXPECT_EQ(reader.type(), json::ValueType::ARRAY_START);
 
     reader.read();

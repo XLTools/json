@@ -69,15 +69,17 @@ endif()
 
 
 if(BUILD_FUZZ AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(LLVM_USE_SANITIZE_COVERAGE ON)
-    set(LLVM_USE_SANITIZER "Address")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=bool -fsanitize-coverage=edge,8bit-counters,trace-cmp")
     if(NOT TARGET LLVMFuzzer)
         add_subdirectory(Fuzzer)
     endif()
 
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads)
+
     add_executable(JSONFuzzReader test/fuzz/reader.cpp)
     add_executable(JSONFuzzWriter test/fuzz/writer.cpp)
 
-    target_link_libraries(JSONFuzzReader LLVMFuzzer JSON)
-    target_link_libraries(JSONFuzzWriter LLVMFuzzer JSON)
+    target_link_libraries(JSONFuzzReader LLVMFuzzer JSON Threads::Threads)
+    target_link_libraries(JSONFuzzWriter LLVMFuzzer JSON Threads::Threads)
 endif()

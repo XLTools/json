@@ -2,9 +2,10 @@
 //  :license: MIT, see LICENSE.md for more details.
 /*
  *  \addtogroup Tests
- *  \brief Fuzz testing for JSON readers.
+ *  \brief Fuzz testing for JSON writers.
  */
 
+#include <json/except.hpp>
 #include <json/writer.hpp>
 #include <gtest/gtest.h>
 
@@ -14,7 +15,15 @@
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
-//  DoSomethingInterestingWithMyAPI(Data, Size);
+    std::string string(reinterpret_cast<const char*>(Data), Size);
+    try {
+        json::StringTextWriter writer;
+        writer.startArray();
+        writer.write(string);
+        writer.endArray();
+    } catch (json::Exception) {
+        // catching custom exceptions is fine.
+    }
 
     return 0;
 }
