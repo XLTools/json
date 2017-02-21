@@ -19,16 +19,17 @@ Json++ is a memory-efficient, dependency-free, lazy C++11 JSON reader and writer
 
 ## Motivation
 
-**DOM sucks.** DOM APIs load the entire document into memory, and require post-parsing data processing, making DOM useless for large workloads.
+**DOM sucks.** DOM APIs read the entire document into memory, making DOM useless for large workloads.
 
-**SAX sucks.** SAX APIs map specific events to specific handlers, requiring conditional branches for each tree in the document, resulting in tedious amounts of boilerplate.
+**SAX sucks.** SAX APIs map specific events to specific handlers, requiring conditional branches for each tree in the document, producing tedious amounts of boilerplate.
 
-**Iteratables rule.** Inspired by the TextReader and TextWriter APIs from .NET, Json++ provides lazy, iterative access to each node as the document is parsed, simplifying tree-specific parsing with minimal overhead. 
+**Iteration rules.** Inspired by the TextReader and TextWriter APIs from .NET, Json++ provides iterative access to each node as the document is parsed, simplifying tree-specific parsing with minimal overhead. 
 
 Json++ features:
 
-- STL-like access
-- Iterators and auto-ranges
+- Low memory overhead
+- Tree-like logic
+- STL-like iterators, auto-ranges, and STL container adapters
 
 ## Getting Started
 
