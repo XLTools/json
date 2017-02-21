@@ -8,6 +8,7 @@
 #pragma once
 
 #include "type.hpp"
+#include "wrapper.hpp"
 
 
 namespace json
@@ -26,17 +27,17 @@ struct Extract
     /** \brief Overload string.
      */
     template <typename U = T>
-    enable_if_t<is_string_v<U>, const U&>
-    operator()(const std::string &string)
+    enable_if_t<is_string_v<U>, const U>
+    operator()(const StringWrapper &string)
     {
-        return string;
+        return std::string(string);
     }
 
     /** \brief Overload char.
      */
     template <typename U = T>
     enable_if_t<is_char_v<U>, U>
-    operator()(const std::string &string)
+    operator()(const StringWrapper &string)
     {
         return string.empty() ? '\0' : string.front();
     }
@@ -45,7 +46,7 @@ struct Extract
      */
     template <typename U = T>
     enable_if_t<is_bool_v<U>, U>
-    operator()(const std::string &string)
+    operator()(const StringWrapper &string)
     {
         return string == "true";
     }
@@ -54,16 +55,17 @@ struct Extract
      */
     template <typename U = T>
     enable_if_t<is_integer_v<U>, U>
-    operator()(const std::string &string)
+    operator()(const StringWrapper &string)
     {
-        return std::stol(string);
+        // TODO: need to optimize
+        return std::stol(std::string(string));
     }
 
     /** \brief Overload float.
      */
     template <typename U = T>
     enable_if_t<is_float_v<U>, U>
-    operator()(const std::string &string)
+    operator()(const StringWrapper &string)
     {
         if (string == "NaN") {
             return std::numeric_limits<T>::quiet_NaN();
@@ -72,7 +74,8 @@ struct Extract
         } else if (string == "-inf") {
             return -std::numeric_limits<T>::infinity();
         }
-        return std::stod(string);
+        // TODO: need to optimize
+        return std::stod(std::string(string));
     }
 };
 

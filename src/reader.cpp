@@ -898,9 +898,9 @@ bool TextReader::read()
  */
 bool TextReader::seek(const size_t depth)
 {
-    while (this->depth() != depth && isValid()) {
+    do {
         read();
-    }
+    } while (this->depth() != depth && isValid());
 
     return this->depth() == depth;
 }
@@ -910,9 +910,9 @@ bool TextReader::seek(const size_t depth)
  */
 bool TextReader::seek(const std::string &key)
 {
-    while (buffer_[0] != key && isValid()) {
+    do {
         read();
-    }
+    } while (buffer_[0] != key && isValid());
 
     return buffer_[0] == key;
 }
@@ -923,11 +923,27 @@ bool TextReader::seek(const std::string &key)
 bool TextReader::seek(const std::string &key,
     const size_t depth)
 {
-    while (!(this->depth() == depth && buffer_[0] == key) && isValid()) {
+    do {
         read();
-    }
+    } while (!(this->depth() == depth && buffer_[0] == key) && isValid());
 
     return this->depth() == depth;
+}
+
+
+/** \brief Get view of reader as an array for specialized parsing.
+ */
+ArrayView TextReader::array()
+{
+    return ArrayView(*this);
+}
+
+
+/** \brief Get view of reader as an object for specialized parsing.
+ */
+ObjectView TextReader::object()
+{
+    return ObjectView(*this);
 }
 
 

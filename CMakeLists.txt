@@ -35,9 +35,12 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_FILES
     src/detail/ieee754.cpp
     src/detail/string.cpp
+    src/detail/wrapper.cpp
     src/detail/write.cpp
     src/except.cpp
+    src/iterator.cpp
     src/reader.cpp
+    src/view.cpp
     src/writer.cpp
 )
 
@@ -56,6 +59,9 @@ if(BUILD_TESTS)
 
     add_executable(JSONSimpleReader example/simplereader.cpp)
     target_link_libraries(JSONSimpleReader JSON)
+
+    add_executable(JSONBasic example/basic.cpp)
+    target_link_libraries(JSONBasic JSON)
 endif()
 
 # TESTS

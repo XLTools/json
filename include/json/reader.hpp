@@ -9,6 +9,7 @@
 
 #include "except.hpp"
 #include "node.hpp"
+#include "view.hpp"
 #include "detail/extract.hpp"
 
 #include <array>
@@ -78,6 +79,11 @@ class TextReader: protected detail::TextReaderImpl
 protected:
     TextReader() = default;
 
+    friend class ArrayIterator;
+    friend class ArrayView;
+    friend class ObjectIterator;
+    friend class ObjectView;
+
 public:
     TextReader(const TextReader&) = delete;
     TextReader & operator=(const TextReader&) = delete;
@@ -117,6 +123,10 @@ public:
 
     template <typename T = std::string>
     T value() const;
+
+    // VIEWS
+    ArrayView array();
+    ObjectView object();
 };
 
 
@@ -153,8 +163,7 @@ public:
 template <typename T>
 T TextReader::key() const
 {
-    detail::Extract<T> extract;
-    return extract(buffer_[0]);
+    return T(ValueWrapper(buffer_[0]));
 }
 
 
@@ -163,8 +172,7 @@ T TextReader::key() const
 template <typename T>
 T TextReader::value() const
 {
-    detail::Extract<T> extract;
-    return extract(buffer_[1]);
+    return T(ValueWrapper(buffer_[1]));
 }
 
 

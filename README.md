@@ -23,14 +23,26 @@ The .NET library took a different approach, and designed push/pull-based APIs wi
 
 ```cpp
 #include <json/reader.hpp>
+#include <json/writer.hpp>
 #include <iostream>
 
 
-int main(int argc, char *argv[])
+int main(void)
 {
-// TODO: i need a simple API to check if isStart
-    json::StringTextReader reader("{5:3,1:2,7:{6:2}}");
-    reader.read();
+    // iterate over the child nodes as an auto-range
+    json::StringTextReader reader(" {\"1\":2}  \n");
+    std::unordered_map<int, int> map;
+    json::StringTextReader reader(" {\"1\":2}  \n");
+    for (const auto &pair: reader.object()) {
+        map[int(pair.first)] = int(pair.second);
+    }
+
+    // write map back out to string
+    json::StringTextWriter writer;
+    writer.write(map);
+    std::cout << writer.str() << std::endl;
+
+    return 0;
 }
 ```
 
@@ -68,6 +80,8 @@ Coming soon, for now, see the the [examples](/example) for how to use Json++.
 
 - DOM-style API using the TextReader internally.
 - Pretty Printing
+- Array and Object Iteration
+- Fast string formatting and extraction (replacing std::to_string and std::stod).
 
 ## Contributors
 
