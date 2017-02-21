@@ -10,9 +10,12 @@
 #include <array>
 #include <deque>
 #include <limits>
+#include <list>
+#include <set>
 #include <map>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 
@@ -129,6 +132,46 @@ struct is_array<std::deque<Ts...>>: std::true_type
 
 template <typename... Ts>
 struct is_array<std::deque<Ts...>&>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::list<Ts...>>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::list<Ts...>&>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::set<Ts...>>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::set<Ts...>&>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::multiset<Ts...>>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::multiset<Ts...>&>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::unordered_set<Ts...>>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::unordered_set<Ts...>&>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::unordered_multiset<Ts...>>: std::true_type
+{};
+
+template <typename... Ts>
+struct is_array<std::unordered_multiset<Ts...>&>: std::true_type
 {};
 
 template <typename... Ts>

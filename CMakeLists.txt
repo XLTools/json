@@ -60,8 +60,11 @@ if(BUILD_TESTS)
     add_executable(JSONSimpleReader example/simplereader.cpp)
     target_link_libraries(JSONSimpleReader JSON)
 
-    add_executable(JSONBasic example/basic.cpp)
-    target_link_libraries(JSONBasic JSON)
+    add_executable(JSONRange example/range.cpp)
+    target_link_libraries(JSONRange JSON)
+
+    add_executable(JSONStl example/stl.cpp)
+    target_link_libraries(JSONStl JSON)
 endif()
 
 # TESTS

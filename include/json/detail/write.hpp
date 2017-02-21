@@ -90,56 +90,6 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const uint64_t number);
 
-// CONTAINERS
-
-/** \brief Write array.
- */
-template <typename T>
-enable_if_t<is_array_v<T>, std::ostream&>
-write(std::ostream &stream,
-    const T &t)
-{
-    stream.put('[');
-    bool first = true;
-    for (const auto &item: t) {
-        if (!first) {
-            stream.put(',');
-        } else {
-            first = false;
-        }
-        write(stream, item);
-    }
-    stream.put(']');
-
-    return stream;
-}
-
-
-/** \brief Write array.
- */
-template <typename T>
-enable_if_t<is_object_v<T>, std::ostream&>
-write(std::ostream &stream,
-    const T &t)
-{
-    stream.put('{');
-    bool first = true;
-    for (const auto &item: t) {
-        if (!first) {
-            stream.put(',');
-        } else {
-            first = false;
-        }
-        write(stream, item.first);
-        stream.put(':');
-        write(stream, item.second);
-    }
-    stream.put('}');
-
-    return stream;
-}
-
-
 /** \brief Write null key.
  */
 std::ostream & writeKey(std::ostream &stream,
@@ -227,6 +177,55 @@ std::ostream & writeValue(std::ostream &stream,
     T &&t)
 {
     return write(stream, std::forward<T>(t));
+}
+
+// CONTAINERS
+
+/** \brief Write array.
+ */
+template <typename T>
+enable_if_t<is_array_v<T>, std::ostream&>
+write(std::ostream &stream,
+    const T &t)
+{
+    stream.put('[');
+    bool first = true;
+    for (const auto &item: t) {
+        if (!first) {
+            stream.put(',');
+        } else {
+            first = false;
+        }
+        write(stream, item);
+    }
+    stream.put(']');
+
+    return stream;
+}
+
+
+/** \brief Write array.
+ */
+template <typename T>
+enable_if_t<is_object_v<T>, std::ostream&>
+write(std::ostream &stream,
+    const T &t)
+{
+    stream.put('{');
+    bool first = true;
+    for (const auto &item: t) {
+        if (!first) {
+            stream.put(',');
+        } else {
+            first = false;
+        }
+        writeKey(stream, item.first);
+        stream.put(':');
+        writeValue(stream, item.second);
+    }
+    stream.put('}');
+
+    return stream;
 }
 
 }   /* detail */

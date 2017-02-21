@@ -39,6 +39,12 @@ public:
 
     iterator begin();
     iterator end();
+
+    template<
+        typename T,
+        typename = detail::enable_if_t<detail::is_array_v<T>, T>
+    >
+    explicit operator T();
 };
 
 
@@ -62,6 +68,50 @@ public:
 
     iterator begin();
     iterator end();
+
+    template<
+        typename T,
+        typename = detail::enable_if_t<detail::is_object_v<T>, T>
+    >
+    explicit operator T();
 };
+
+
+// IMPLEMENTATION
+// --------------
+
+
+/** \brief Convert array view to STL container.
+ */
+template <typename T, typename>
+ArrayView::operator T()
+{
+    typedef typename T::value_type U;
+
+    T t;
+    for (const auto &value: *this) {
+        t.insert(t.end(), U(value));
+    }
+
+    return t;
+}
+
+
+/** \brief Convert object view to STL container.
+ */
+template <typename T, typename>
+ObjectView::operator T()
+{
+    static_assert(detail::is_object_v<T>, "");
+    typedef typename T::key_type K;
+    typedef typename T::mapped_type M;
+
+    T t;
+    for (const auto &pair: *this) {
+        t.emplace(K(pair.first), M(pair.second));
+    }
+
+    return t;
+}
 
 }   /* json */

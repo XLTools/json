@@ -1,7 +1,7 @@
 //  :copyright: (c) 2016-2017 The Regents of the University of California.
 //  :license: MIT, see LICENSE.md for more details.
 /**
- *  Basic read/write example for the TextReader/TextWriter API.
+ *  Read/write example using STL-container helpers.
  */
 
 #include "json/reader.hpp"
@@ -12,23 +12,15 @@
 
 int main(void)
 {
-    // READER
-    // ------
-
-    std::unordered_map<int, int> map;
-
-    // iterate over the child nodes
+    // read document into map
     json::StringTextReader reader(" {\"1\":2}  \n");
-    for (const auto &pair: reader.object()) {
-        map[int(pair.first)] = int(pair.second);
-    }
+    std::unordered_map<int, int> map(reader.object());
 
-    // WRITER
-    // ------
+    // write JSON document from map
     json::StringTextWriter writer;
     writer.write(map);
 
-    // write {1:2} to stdout
+    // write {"1":2} to stdout
     std::cout << writer.str() << std::endl;
 
     return 0;

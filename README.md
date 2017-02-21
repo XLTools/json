@@ -19,11 +19,16 @@ Json++ is a memory-efficient, dependency-free, lazy C++11 JSON reader and writer
 
 ## Motivation
 
-**DOM sucks.** DOM APIs load the entire document into memory, in a data-agnostic container that must then be processed to the data you want, making DOM useless for large workloads.
+**DOM sucks.** DOM APIs load the entire document into memory, and require post-parsing data processing, making DOM useless for large workloads.
 
-**SAX sucks.** SAX APIs handle a series of general events to custom handlers, making complex document parsing requiring complicated conditional logic, and tedious amounts of boilerplate.
+**SAX sucks.** SAX APIs map specific events to specific handlers, requiring conditional branches for each tree in the document, resulting in tedious amounts of boilerplate.
 
-**Iterators rule.** Inspired by the TextReader and TextWriter APIs from .NET, Json++ provides a lazy, DOM-like interface, with iterative access to each node as the document is parsed. This enables tree-specific parser logic and auto-ranges, without pre-loading the document into memory.
+**Iteratables rule.** Inspired by the TextReader and TextWriter APIs from .NET, Json++ provides lazy, iterative access to each node as the document is parsed, simplifying tree-specific parsing with minimal overhead. 
+
+Json++ features:
+
+- STL-like access
+- Iterators and auto-ranges
 
 ## Getting Started
 
@@ -35,16 +40,15 @@ Json++ is a memory-efficient, dependency-free, lazy C++11 JSON reader and writer
 
 int main(void)
 {
-    // iterate over the child nodes as an auto-range
+    // read document into map
     json::StringTextReader reader(" {\"1\":2}  \n");
-    std::unordered_map<int, int> map;
-    for (const auto &pair: reader.object()) {
-        map[int(pair.first)] = int(pair.second);
-    }
+    std::unordered_map<int, int> map(reader.object());
 
-    // write map back out to string
+    // re-create JSON document from map 
     json::StringTextWriter writer;
     writer.write(map);
+
+    // write {"1":2} to stdout
     std::cout << writer.str() << std::endl;
 
     return 0;
