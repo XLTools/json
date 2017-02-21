@@ -5,7 +5,6 @@
  *  \brief Test stream writer.
  */
 
-#include <json/except.hpp>
 #include <json/writer.hpp>
 #include <gtest/gtest.h>
 
@@ -33,7 +32,8 @@ TEST(TextWriter, WriteMap)
 TEST(TextWriter, NodelessInt)
 {
     json::StringTextWriter writer;
-    ASSERT_THROW(writer.write(1), json::NodeError);
+    writer.write(1);
+    EXPECT_EQ(writer.str(), "1");
 }
 
 

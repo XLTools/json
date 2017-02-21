@@ -86,9 +86,6 @@ public:
 
     TextReader(std::istream &stream);
 
-    ValueType & type();
-    const ValueType & type() const;
-
     // DATA
     size_t depth() const;
     bool isEof() const;
@@ -101,7 +98,18 @@ public:
     bool isString() const;
     bool isArray() const;
     bool isObject() const;
+    bool isStartNode() const;
+    bool isEndNode() const;
+    bool hasKey() const;
+    bool hasValue() const;
+    ValueType type() const;
+
+    // PROCESSING
     bool read();
+    bool seek(const size_t depth);
+    bool seek(const std::string &key);
+    bool seek(const std::string &key,
+        const size_t depth);
 
     // EXTRACT
     template <typename T = std::string>
@@ -145,10 +153,6 @@ public:
 template <typename T>
 T TextReader::key() const
 {
-    if (!isObject()) {
-        throw NodeError("Cannot get key without an object type.");
-    }
-
     detail::Extract<T> extract;
     return extract(buffer_[0]);
 }

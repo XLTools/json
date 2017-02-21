@@ -38,6 +38,21 @@ std::ostream & write(std::ostream &stream,
     } else {
         stream.write("false", 5);
     }
+    return stream;
+}
+
+
+/** \brief Write C-string.
+ */
+std::ostream & write(std::ostream &stream,
+    const char *string)
+{
+    auto escaped = escape(std::string(string));
+    stream.put('"');
+    stream.write(escaped.data(), escaped.size());
+    stream.put('"');
+
+    return stream;
 }
 
 
@@ -47,7 +62,9 @@ std::ostream & write(std::ostream &stream,
     const std::string &string)
 {
     auto escaped = escape(string);
+    stream.put('"');
     stream.write(escaped.data(), escaped.size());
+    stream.put('"');
 
     return stream;
 }
@@ -71,7 +88,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const unsigned char character)
 {
-    write(stream, static_cast<char>(character));
+    return write(stream, static_cast<char>(character));
 }
 
 
@@ -80,7 +97,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const float number)
 {
-    write(stream, static_cast<double>(number));
+    return write(stream, static_cast<double>(number));
 }
 
 
@@ -106,7 +123,8 @@ std::ostream & write(std::ostream &stream,
         }
     } else {
         // TODO: enhance perfomance here
-        write(stream, std::to_string(number));
+        auto string = std::to_string(number);
+        stream.write(string.data(), std::min<size_t>(string.size(), 30));
     }
 
     return stream;
@@ -119,7 +137,8 @@ std::ostream & write(std::ostream &stream,
     const int16_t number)
 {
     // TODO: enhance perfomance here
-    write(stream, std::to_string(number));
+    auto string = std::to_string(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
@@ -131,7 +150,8 @@ std::ostream & write(std::ostream &stream,
     const uint16_t number)
 {
     // TODO: enhance perfomance here
-    write(stream, std::to_string(number));
+    auto string = std::to_string(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
@@ -143,7 +163,8 @@ std::ostream & write(std::ostream &stream,
     const int32_t number)
 {
     // TODO: enhance perfomance here
-    write(stream, std::to_string(number));
+    auto string = std::to_string(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
@@ -155,7 +176,8 @@ std::ostream & write(std::ostream &stream,
     const uint32_t number)
 {
     // TODO: enhance perfomance here
-    write(stream, std::to_string(number));
+    auto string = std::to_string(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
@@ -167,7 +189,8 @@ std::ostream & write(std::ostream &stream,
     const int64_t number)
 {
     // TODO: enhance perfomance here
-    write(stream, std::to_string(number));
+    auto string = std::to_string(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
@@ -179,10 +202,165 @@ std::ostream & write(std::ostream &stream,
     const uint64_t number)
 {
     // TODO: enhance perfomance here
-    write(stream, std::to_string(number));
+    auto string = std::to_string(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
+
+
+/** \brief Write null key.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const std::nullptr_t nullp)
+{
+    stream.put('"');
+    write(stream, nullp);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write bool.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const bool boolean)
+{
+    stream.put('"');
+    write(stream, boolean);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write C-string.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const char *string)
+{
+    return write(stream, string);
+}
+
+/** \brief Write string.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const std::string &string)
+{
+    return write(stream, string);
+}
+
+/** \brief Write character.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const char character)
+{
+    return write(stream, character);
+}
+
+/** \brief Write unsigned character.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const unsigned char character)
+{
+    return write(stream, character);
+}
+
+/** \brief Write float.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const float number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write double.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const double number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write integer.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const int16_t number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write integer.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const uint16_t number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write integer.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const int32_t number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write integer.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const uint32_t number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write integer.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const int64_t number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
+/** \brief Write integer.
+ */
+std::ostream & writeKey(std::ostream &stream,
+    const uint64_t number)
+{
+    stream.put('"');
+    write(stream, number);
+    stream.put('"');
+
+    return stream;
+}
+
 
 }   /* detail */
 }   /* json */

@@ -5,7 +5,6 @@
  *  \brief Implementation of JSON TextWriter.
  */
 
-#include "json/except.hpp"
 #include "json/writer.hpp"
 
 #include <array>
@@ -26,23 +25,6 @@ const char KEY_DELIMITER = ':';
 std::array<std::string, 2> INDENT = {"", "    "};
 std::array<std::string, 2> SPACE = {"", " "};
 std::array<std::string, 2> NEWLINE = {"", "\n"};
-
-// MACROS
-// ------
-
-/** \brief Check the current element is an array element.
- */
-#define JSON_CHECK_ARRAY()                                              \
-    if (!isArray()) {                                                   \
-        throw NodeError("TextWriter::isArray() -> false.");             \
-    }
-
-/** \brief Check the current element is an object element.
- */
-#define JSON_CHECK_OBJECT()                                             \
-    if (!isObject()) {                                                  \
-        throw NodeError("TextWriter::isObject() -> false.");            \
-    }
 
 // OBJECTS
 // -------
@@ -148,7 +130,26 @@ bool TextWriter::isObject() const
  */
 bool TextWriter::startObject()
 {
-    // TODO: Need to think about the pretty writer
+    JSON_CHECK_ROOT_OR_ARRAY();
+
+    writeValueDelimiter();
+    stream->put(START_OBJECT);
+    node.emplace_back(NodeType::OBJECT);
+    offset.emplace_back(0);
+
+    return true;
+}
+
+
+/** \brief Initialize an object element.
+ */
+bool TextWriter::startObject(const std::string &key)
+{
+    JSON_CHECK_OBJECT();
+
+    writeValueDelimiter();
+    stream->write(key.data(), key.size());
+    stream->put(KEY_DELIMITER);
     stream->put(START_OBJECT);
     node.emplace_back(NodeType::OBJECT);
     offset.emplace_back(0);
@@ -178,7 +179,26 @@ bool TextWriter::endObject()
  */
 bool TextWriter::startArray()
 {
-    // TODO: Need to think about the pretty writer
+    JSON_CHECK_ROOT_OR_ARRAY();
+
+    writeValueDelimiter();
+    stream->put(START_ARRAY);
+    node.emplace_back(NodeType::ARRAY);
+    offset.emplace_back(0);
+
+    return true;
+}
+
+
+/** \brief Initialize an array element.
+ */
+bool TextWriter::startArray(const std::string &key)
+{
+    JSON_CHECK_OBJECT();
+
+    writeValueDelimiter();
+    stream->write(key.data(), key.size());
+    stream->put(KEY_DELIMITER);
     stream->put(START_ARRAY);
     node.emplace_back(NodeType::ARRAY);
     offset.emplace_back(0);

@@ -5,7 +5,6 @@
  *  \brief Fuzz testing for JSON writers.
  */
 
-#include <json/except.hpp>
 #include <json/writer.hpp>
 #include <gtest/gtest.h>
 

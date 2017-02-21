@@ -738,22 +738,6 @@ TextReader::TextReader(std::istream &stream)
 }
 
 
-/** \brief Get reference to current value type.
- */
-ValueType & TextReader::type()
-{
-    return type_;
-}
-
-
-/** \brief Get const reference to current value type.
- */
-const ValueType & TextReader::type() const
-{
-    return type_;
-}
-
-
 /** \brief Get depth of current reader.
  */
 size_t TextReader::depth() const
@@ -843,6 +827,58 @@ bool TextReader::isObject() const
 }
 
 
+/** \brief Check if current node is a start node.
+ */
+bool TextReader::isStartNode() const
+{
+    switch (type_) {
+        case ValueType::ARRAY_START:
+        case ValueType::OBJECT_START:
+            return true;
+        default:
+            return false;
+    }
+}
+
+
+/** \brief Check if current node is an end node.
+ */
+bool TextReader::isEndNode() const
+{
+    switch (type_) {
+        case ValueType::ARRAY_END:
+        case ValueType::OBJECT_END:
+            return true;
+        default:
+            return false;
+    }
+}
+
+
+/** \brief Check if current node has key data.
+ */
+bool TextReader::hasKey() const
+{
+    return !buffer_[0].empty();
+}
+
+
+/** \brief Check if current node has value data.
+ */
+bool TextReader::hasValue() const
+{
+    return !buffer_[1].empty();
+}
+
+
+/** \brief Get current value type.
+ */
+ValueType TextReader::type() const
+{
+    return type_;
+}
+
+
 /** \brief Seek next element from parser.
  */
 bool TextReader::read()
@@ -855,6 +891,43 @@ bool TextReader::read()
         throw ParserError("Unclosed `{` or `[` character.");
     }
     return true;
+}
+
+
+/** \brief Seek element at desired depth.
+ */
+bool TextReader::seek(const size_t depth)
+{
+    while (this->depth() != depth && isValid()) {
+        read();
+    }
+
+    return this->depth() == depth;
+}
+
+
+/** \brief Seek element with the desired key name.
+ */
+bool TextReader::seek(const std::string &key)
+{
+    while (buffer_[0] != key && isValid()) {
+        read();
+    }
+
+    return buffer_[0] == key;
+}
+
+
+/** \brief Seek element with the desired key name at the desired depth.
+ */
+bool TextReader::seek(const std::string &key,
+    const size_t depth)
+{
+    while (!(this->depth() == depth && buffer_[0] == key) && isValid()) {
+        read();
+    }
+
+    return this->depth() == depth;
 }
 
 

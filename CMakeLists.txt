@@ -9,14 +9,23 @@ project(JSON CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CXX_STANDARD TRUE)
-if(UNIX)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    add_definitions(-fPIC)
-endif()
 
 option(BUILD_STATIC "Build static library" ON)
 option(BUILD_TESTS "Build JSON library tests" OFF)
 option(BUILD_FUZZ "Build fuzz testing" OFF)
+option(BUILD_EXAMPLES "Build example files" OFF)
+
+if(BUILD_STATIC)
+    if(UNIX)
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+        add_definitions(-fPIC)
+    elseif(MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+    elseif(MSVC)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} /MTd /O0")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /Ox")
+    endif()
+endif()
 
 # LIBRARY
 # -------
@@ -36,6 +45,17 @@ if(BUILD_STATIC)
     add_library(JSON STATIC ${SOURCE_FILES})
 else()
     add_library(JSON SHARED ${SOURCE_FILES})
+endif()
+
+# EXAMPLES
+# --------
+
+if(BUILD_TESTS)
+    add_executable(JSONSimpleWriter example/simplewriter.cpp)
+    target_link_libraries(JSONSimpleWriter JSON)
+
+    add_executable(JSONSimpleReader example/simplereader.cpp)
+    target_link_libraries(JSONSimpleReader JSON)
 endif()
 
 # TESTS

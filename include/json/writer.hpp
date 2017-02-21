@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "except.hpp"
 #include "node.hpp"
 #include "detail/write.hpp"
 #include "detail/type.hpp"
@@ -19,6 +20,30 @@
 
 namespace json
 {
+// MACROS
+// ------
+
+/** \brief Check the current element is an array element.
+ */
+#define JSON_CHECK_ARRAY()                                              \
+    if (!isArray()) {                                                   \
+        throw NodeError("TextWriter::isArray() -> false.");             \
+    }
+
+/** \brief Check the current element is an array element, or root element.
+ */
+#define JSON_CHECK_ROOT_OR_ARRAY()                                      \
+    if (!node.empty() && !isArray()) {                                  \
+        throw NodeError("TextWriter::isArray() -> false.");             \
+    }
+
+/** \brief Check the current element is an object element.
+ */
+#define JSON_CHECK_OBJECT()                                             \
+    if (!isObject()) {                                                  \
+        throw NodeError("TextWriter::isObject() -> false.");            \
+    }
+
 // OBJECTS
 // -------
 
@@ -56,8 +81,10 @@ public:
 
     // WRITERS -- NODES
     bool startObject();
+    bool startObject(const std::string &key);
     bool endObject();
     bool startArray();
+    bool startArray(const std::string &key);
     bool endArray();
 
     // WRITERS -- ARRAYS
@@ -109,9 +136,8 @@ public:
 template <typename T>
 void TextWriter::write(const T &t)
 {
-    if (!(detail::is_array_v<T> || detail::is_object_v<T>)) {
-        checkNode(NodeType::ARRAY);
-    }
+    JSON_CHECK_ROOT_OR_ARRAY();
+
     writeValueDelimiter();
     detail::write(*stream, t);
 }
@@ -122,9 +148,8 @@ void TextWriter::write(const T &t)
 template <typename T>
 void TextWriter::write(T &&t)
 {
-    if (!(detail::is_array_v<T> || detail::is_object_v<T>)) {
-        checkNode(NodeType::ARRAY);
-    }
+    JSON_CHECK_ROOT_OR_ARRAY();
+
     writeValueDelimiter();
     detail::write(*stream, std::forward<T>(t));
 }
@@ -135,9 +160,10 @@ void TextWriter::write(T &&t)
 template <typename T, typename U>
 void TextWriter::write(const T &t, const U &u)
 {
-    checkNode(NodeType::OBJECT);
+    JSON_CHECK_OBJECT();
+
     writeValueDelimiter();
-    detail::write(*stream, t);
+    detail::writeKey(*stream, t);
     writeKeyDelimiter();
     detail::write(*stream, u);
 }
@@ -148,9 +174,10 @@ void TextWriter::write(const T &t, const U &u)
 template <typename T, typename U>
 void TextWriter::write(T &&t, U &&u)
 {
-    checkNode(NodeType::OBJECT);
+    JSON_CHECK_OBJECT();
+
     writeValueDelimiter();
-    detail::write(*stream, std::forward<T>(t));
+    detail::writeKey(*stream, std::forward<T>(t));
     writeKeyDelimiter();
     detail::write(*stream, std::forward<U>(u));
 }
