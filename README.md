@@ -6,18 +6,18 @@ Json++ is a memory-efficient, dependency-free, lazy C++11 JSON reader and writer
 **Table of Contents**
 
 - [Motivation](#motivation)
-- [Design](#design)
 - [Getting Started](#getting-started)
+- [Design](#design)
 - [Building](#building)
 - [Testing](#testing)
 
 ## Motivation
 
-Most parsers provide one of two interfaces: a DOM API, which parses the entire document tree, and a SAX API, which provides event-based handling for lazy parsing. Although DOM parsers are easy-to-use, they scale poorly with large documents. SAX parsers, on the other hand, require large amounts of boilerplate for basic tasks, making it difficult to do complex processing.
+**DOM sucks.** DOM APIs load the entire document into memory, in a data-agnostic container that must then be processed to the data you want, making DOM useless for large workloads.
 
-The .NET library took a different approach, and designed push/pull-based APIs with a TextReader and TextWriter approach: the API iterates over nodes in the document, allowing you to process data at each step. Json++ makes a text-reader like API in native C++ for high-performance, save C++ parsing.
+**SAX sucks.** SAX APIs handle a series of general events to custom handlers, making complex document parsing requiring complicated conditional logic, and tedious amounts of boilerplate.
 
-## Design
+**Iterators rule.** Inspired by the TextReader and TextWriter APIs from .NET, Json++ provides a lazy, DOM-like interface, with iterative access to each node as the document is parsed. This enables tree-specific parser logic and auto-ranges, without pre-loading the document into memory.
 
 ## Getting Started
 
@@ -45,6 +45,8 @@ int main(void)
     return 0;
 }
 ```
+
+## Design
 
 ## Building
 
@@ -80,7 +82,6 @@ Coming soon, for now, see the the [examples](/example) for how to use Json++.
 
 - DOM-style API using the TextReader internally.
 - Pretty Printing
-- Array and Object Iteration
 - Fast string formatting and extraction (replacing std::to_string and std::stod).
 
 ## Contributors
