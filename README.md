@@ -67,6 +67,7 @@ Coming soon, for now, see the the [examples](/example) for how to use Json++.
 ## Planned Features
 
 - DOM-style API using the TextReader internally.
+- Pretty Printing
 
 ## Contributors
 
