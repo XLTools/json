@@ -18,6 +18,7 @@ namespace detail
 // OBJECTS
 // -------
 
+// TODO: need to replace with the wrapper
 
 /** \brief Extract basic value from string.
  */
@@ -27,17 +28,17 @@ struct Extract
     /** \brief Overload string.
      */
     template <typename U = T>
-    enable_if_t<is_string_v<U>, const U>
-    operator()(const StringWrapper &string)
+    enable_if_t<is_string_v<U>, const U&>
+    operator()(const std::string &string)
     {
-        return std::string(string);
+        return string;
     }
 
     /** \brief Overload char.
      */
     template <typename U = T>
     enable_if_t<is_char_v<U>, U>
-    operator()(const StringWrapper &string)
+    operator()(const std::string &string)
     {
         return string.empty() ? '\0' : string.front();
     }
@@ -46,7 +47,7 @@ struct Extract
      */
     template <typename U = T>
     enable_if_t<is_bool_v<U>, U>
-    operator()(const StringWrapper &string)
+    operator()(const std::string &string)
     {
         return string == "true";
     }
@@ -55,7 +56,7 @@ struct Extract
      */
     template <typename U = T>
     enable_if_t<is_integer_v<U>, U>
-    operator()(const StringWrapper &string)
+    operator()(const std::string &string)
     {
         // TODO: need to optimize
         return std::stol(std::string(string));
@@ -65,7 +66,7 @@ struct Extract
      */
     template <typename U = T>
     enable_if_t<is_float_v<U>, U>
-    operator()(const StringWrapper &string)
+    operator()(const std::string &string)
     {
         if (string == "NaN") {
             return std::numeric_limits<T>::quiet_NaN();

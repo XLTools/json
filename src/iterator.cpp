@@ -10,20 +10,84 @@
 
 namespace json
 {
-// CONSTANTS
-// ---------
-
-static const std::string EMPTY;
-
 // OBJECTS
 // -------
+
+
+/** \brief Access underlying data.
+ */
+const std::string & KeyWrapper::data() const
+{
+    return reader->buffer_[0];
+}
+
+
+/** \brief Initializer list constructor.
+ */
+KeyWrapper::KeyWrapper(const TextReader *reader):
+    reader(reader)
+{}
+
+
+/** \brief Access underlying data.
+ */
+const std::string & ValueWrapper::data() const
+{
+    return reader->buffer_[1];
+}
+
+
+/** \brief Initializer list constructor.
+ */
+ValueWrapper::ValueWrapper(const TextReader *reader):
+    reader(reader)
+{}
+
+
+/** \brief Check if current value is null.
+ */
+bool ValueWrapper::isNull() const
+{
+    return reader->isNull();
+}
+
+
+/** \brief Check if current value is bool.
+ */
+bool ValueWrapper::isBool() const
+{
+    return reader->isBool();
+}
+
+
+/** \brief Check if current value is a number.
+ */
+bool ValueWrapper::isNumber() const
+{
+    return reader->isNumber();
+}
+
+
+/** \brief Check if current value is string.
+ */
+bool ValueWrapper::isString() const
+{
+    return reader->isString();
+}
+
+
+/** \brief Get underlying value type.
+ */
+ValueType ValueWrapper::type() const
+{
+    return reader->type();
+}
 
 
 /** \brief Initializer list constructor.
  */
 ArrayIterator::ArrayIterator(TextReader *reader):
-    reader(reader),
-    data(EMPTY)
+    reader(reader)
 {
     if (reader) {
         depth = reader->depth();
@@ -54,7 +118,6 @@ bool ArrayIterator::operator!=(const ArrayIterator &other) const
  */
 ArrayData & ArrayIterator::operator*()
 {
-    data = ArrayData(reader->buffer_[1]);
     return data;
 }
 
@@ -63,7 +126,6 @@ ArrayData & ArrayIterator::operator*()
  */
 ArrayData * ArrayIterator::operator->()
 {
-    data = ArrayData(reader->buffer_[1]);
     return &data;
 }
 
@@ -87,9 +149,12 @@ ArrayIterator & ArrayIterator::operator++()
         }
     } while (reader->isValid() && reader->depth() > depth);
 
-    // exited node
-    if (reader->depth() < depth) {
+    // get value or nullify iterator
+    if (reader->depth() >= depth) {
+        data = ValueWrapper(reader);
+    } else {
         reader = nullptr;
+        data = ValueWrapper(nullptr);
     }
 
     return *this;
@@ -120,8 +185,7 @@ void ArrayIterator::swap(ArrayIterator &other)
 /** \brief Initializer list constructor.
  */
 ObjectIterator::ObjectIterator(TextReader *reader):
-    reader(reader),
-    data(EMPTY, EMPTY)
+    reader(reader)
 {
     if (reader) {
         depth = reader->depth();
@@ -183,12 +247,12 @@ ObjectIterator & ObjectIterator::operator++()
         }
     } while (reader->isValid() && reader->depth() > depth);
 
-    // nullify iterator
+    // get value or nullify iterator
     if (reader->depth() >= depth) {
-        data.first = ValueWrapper(reader->buffer_[0]);
-        data.second = ValueWrapper(reader->buffer_[1]);
+        data = std::make_pair(KeyWrapper(reader), ValueWrapper(reader));
     } else {
         reader = nullptr;
+        data = std::make_pair(KeyWrapper(nullptr), ValueWrapper(nullptr));
     }
 
     return *this;

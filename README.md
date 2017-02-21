@@ -10,6 +10,12 @@ Json++ is a memory-efficient, dependency-free, lazy C++11 JSON reader and writer
 - [Design](#design)
 - [Building](#building)
 - [Testing](#testing)
+- [Portability](#portability)
+- [Documentation](#documentation)
+- [Planned Features](#planned-features)
+- [Contributors](#contributors)
+- [Contributors Guidelines](#contributors-guidelines)
+- [License](#license)
 
 ## Motivation
 
@@ -32,7 +38,6 @@ int main(void)
     // iterate over the child nodes as an auto-range
     json::StringTextReader reader(" {\"1\":2}  \n");
     std::unordered_map<int, int> map;
-    json::StringTextReader reader(" {\"1\":2}  \n");
     for (const auto &pair: reader.object()) {
         map[int(pair.first)] = int(pair.second);
     }
@@ -45,8 +50,6 @@ int main(void)
     return 0;
 }
 ```
-
-## Design
 
 ## Building
 

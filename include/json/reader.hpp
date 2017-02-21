@@ -8,7 +8,6 @@
 #pragma once
 
 #include "except.hpp"
-#include "node.hpp"
 #include "view.hpp"
 #include "detail/extract.hpp"
 
@@ -79,10 +78,8 @@ class TextReader: protected detail::TextReaderImpl
 protected:
     TextReader() = default;
 
-    friend class ArrayIterator;
-    friend class ArrayView;
-    friend class ObjectIterator;
-    friend class ObjectView;
+    friend class KeyWrapper;
+    friend class ValueWrapper;
 
 public:
     TextReader(const TextReader&) = delete;
@@ -163,7 +160,7 @@ public:
 template <typename T>
 T TextReader::key() const
 {
-    return T(ValueWrapper(buffer_[0]));
+    return T(KeyWrapper(this));
 }
 
 
@@ -172,8 +169,7 @@ T TextReader::key() const
 template <typename T>
 T TextReader::value() const
 {
-    return T(ValueWrapper(buffer_[1]));
+    return T(ValueWrapper(this));
 }
-
 
 }   /* json */

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "node.hpp"
 #include "detail/extract.hpp"
 #include "detail/wrapper.hpp"
 
@@ -19,23 +20,65 @@ namespace json
 // -------
 
 class TextReader;
-struct ValueWrapper;
+class KeyWrapper;
+class ValueWrapper;
 
 // TYPES
 // -----
 
 typedef ValueWrapper ArrayData;
-typedef std::pair<ValueWrapper, ValueWrapper> ObjectData;
+typedef std::pair<KeyWrapper, ValueWrapper> ObjectData;
 
 // OBJECTS
 // -------
 
 
-/** \brief Simple string-wrapper with implicit type conversions.
+/** \brief Simple wrapper for JSON keys.
  */
-struct ValueWrapper: detail::StringWrapper
+class KeyWrapper
 {
-    using detail::StringWrapper::StringWrapper;
+protected:
+    const TextReader *reader = nullptr;
+
+    const std::string & data() const;
+
+public:
+    KeyWrapper() = default;
+    KeyWrapper(const KeyWrapper&) = default;
+    KeyWrapper & operator=(const KeyWrapper&) = default;
+    KeyWrapper(KeyWrapper&&) = default;
+    KeyWrapper & operator=(KeyWrapper&&) = default;
+
+    KeyWrapper(const TextReader *reader);
+
+    template <typename T>
+    explicit operator T() const;
+};
+
+
+/** \brief Simple wrapper for JSON values.
+ */
+class ValueWrapper
+{
+protected:
+    const TextReader *reader = nullptr;
+
+    const std::string & data() const;
+
+public:
+    ValueWrapper() = default;
+    ValueWrapper(const ValueWrapper&) = default;
+    ValueWrapper & operator=(const ValueWrapper&) = default;
+    ValueWrapper(ValueWrapper&&) = default;
+    ValueWrapper & operator=(ValueWrapper&&) = default;
+
+    ValueWrapper(const TextReader *reader);
+
+    bool isNull() const;
+    bool isBool() const;
+    bool isNumber() const;
+    bool isString() const;
+    ValueType type() const;
 
     template <typename T>
     explicit operator T() const;
@@ -103,10 +146,20 @@ public:
 /** \brief Custom type conversion operation.
  */
 template <typename T>
+KeyWrapper::operator T() const
+{
+    detail::Extract<T> extract;
+    return extract(data());
+}
+
+
+/** \brief Custom type conversion operation.
+ */
+template <typename T>
 ValueWrapper::operator T() const
 {
     detail::Extract<T> extract;
-    return extract(data_);
+    return extract(data());
 }
 
 }   /* json */
