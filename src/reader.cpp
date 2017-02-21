@@ -188,19 +188,30 @@ static void parseString(std::istream &stream,
                     string += '"';
                     break;
                 default:
-                    string += '\\';
-                    string += c;
+                    throw ParserError("Invalid escape character.");
                     break;
             }
             escape = false;
             continue;
         }
+        // check early exit
         if (c == '"') {
             break;
-        } else if (c == '\\') {
-            escape = true;
-        } else {
-            string += c;
+        }
+
+        switch (c) {
+            case '\\':
+                escape = true;
+                break;
+            case '\b':
+            case '\f':
+            case '\n':
+            case '\r':
+            case '\t':
+                throw ParserError("Unescaped control character in JSON string.");
+            default:
+                string += c;
+                break;
         }
     }
     type = ValueType::STRING;
@@ -282,6 +293,47 @@ static void parseNan(std::istream &stream,
 }
 
 
+/** \brief Validate the parsed input number.
+ */
+static void validateNumber(const std::string &string)
+{
+    if (string.empty()) {
+        throw ParserError("Cannot have an empty number.");
+    }
+
+    // checking leading zeros
+    bool minus = string.front() == '-';
+    if (string.size() > (minus ? 2 : 1)) {
+        if (minus) {
+            if (string[1] == '0' && (string[2] >= '0' && string[2] <= '9')) {
+                throw ParserError("String cannot have leading zeros.");
+            }
+        } else {
+            if (string[0] == '0' && (string[1] >= '0' && string[1] <= '9')) {
+                throw ParserError("String cannot have leading zeros.");
+            }
+        }
+    }
+
+    // check exponents
+    const char f = string.front();
+    const char b = string.back();
+    switch (f) {
+        case 'e':
+        case 'E':
+            throw ParserError("Incomplete exponent format.");
+    }
+    switch (b) {
+        case 'e':
+        case 'E':
+            throw ParserError("Incomplete exponent format.");
+        case '+':
+        case '-':
+            throw ParserError("Trailing arithmetic sign.");
+    }
+}
+
+
 /** \brief Parse generic numeric value from file.
  */
 static void parseNumber(std::istream &stream,
@@ -300,81 +352,157 @@ static void parseNumber(std::istream &stream,
     }
 
     char c;
+    bool decimal = false;
+    bool exponent = false;
     while (true) {
         c = stream.peek();
-        if ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
-            string += stream.get();
-        } else if (!(strchr(CONTROL, c) || c == EOF || c == '\0')) {
-            throw ParserError("Unrecognized values in number.");
-        } else {
-            break;
+        switch (c) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+                string += stream.get();
+                break;
+            }
+            case '.': {
+                if (string.empty() || string.back() < '0' || string.back() > '9') {
+                    throw ParserError("Decimal must follow numerical values.");
+                } else if (decimal) {
+                    throw ParserError("Cannot have multiple decimals in value.");
+                }
+                decimal = true;
+                string += stream.get();
+                break;
+            }
+            case 'e':
+            case 'E': {
+                if (string.empty() || string.back() < '0' || string.back() > '9') {
+                    throw ParserError("Exponent must follow numerical values.");
+                } else if (exponent) {
+                    throw ParserError("Cannot have multiple exponents in value.");
+                }
+                exponent = true;
+                string += stream.get();
+                break;
+            }
+            case '-': {
+                if (!string.empty() && !(string.back() == 'e' || string.back() == 'E')) {
+                    throw ParserError("- sign must follow exponent or be at start.");
+                }
+                string += stream.get();
+                break;
+            }
+            case '+': {
+                if (string.empty() || !(string.back() == 'e' || string.back() == 'E')) {
+                    throw ParserError("+ sign must follow exponent.");
+                }
+                string += stream.get();
+                break;
+            }
+            // CONTROL BLOCKS
+            case ' ':
+            case '\n':
+            case '\r':
+            case '\t':
+            case '}':
+            case ']':
+            case ',':
+            case ':':
+            case '\0':
+            case EOF:
+                type = ValueType::NUMBER;
+                validateNumber(string);
+                return;
+
+            // ENDING CHARACTERS
+            default:
+                throw ParserError("Unrecognized values in number.");
         }
     }
-    type = ValueType::NUMBER;
 }
+
+
+// OBJECTS
+// -------
 
 
 /** \brief Initialize new object.
  */
-static void startObject(TextReader &reader)
+void TextReaderImpl::startObject()
 {
-    reader.node().emplace_back(NodeType::OBJECT);
-    reader.offset().emplace_back(0);
-    reader.type() = ValueType::OBJECT_START;
-    reader.stream().get();
+    node_.emplace_back(NodeType::OBJECT);
+    offset_.emplace_back(0);
+    type_ = ValueType::OBJECT_START;
+    stream_->get();
 }
 
 
 /** \brief End object.
  */
-static void endObject(TextReader &reader)
+void TextReaderImpl::endObject()
 {
-    checkEnd(reader.node(), NodeType::OBJECT);
-    reader.node().pop_back();
-    reader.offset().pop_back();
-    reader.type() = ValueType::OBJECT_END;
-    if (!reader.offset().empty()) {
-        ++reader.offset().back();
+    checkEnd(node_, NodeType::OBJECT);
+    node_.pop_back();
+    offset_.pop_back();
+    type_ = ValueType::OBJECT_END;
+    if (!offset_.empty()) {
+        ++offset_.back();
     }
 
-    reader.stream().get();
+    stream_->get();
 }
 
 
 /** \brief Initialize new array.
  */
-static void startArray(TextReader &reader)
+void TextReaderImpl::startArray()
 {
-    reader.node().emplace_back(NodeType::ARRAY);
-    reader.offset().emplace_back(0);
-    reader.type() = ValueType::ARRAY_START;
-    reader.stream().get();
+    node_.emplace_back(NodeType::ARRAY);
+    offset_.emplace_back(0);
+    type_ = ValueType::ARRAY_START;
+    stream_->get();
 }
 
 
 /** \brief End array.
  */
-static void endArray(TextReader &reader)
+void TextReaderImpl::endArray()
 {
-    checkEnd(reader.node(), NodeType::ARRAY);
-    reader.node().pop_back();
-    reader.offset().pop_back();
-    reader.type() = ValueType::ARRAY_END;
-    if (!reader.offset().empty()) {
-        ++reader.offset().back();
+    checkEnd(node_, NodeType::ARRAY);
+    node_.pop_back();
+    offset_.pop_back();
+    type_ = ValueType::ARRAY_END;
+    if (!offset_.empty()) {
+        ++offset_.back();
     }
 
-    reader.stream().get();
+    stream_->get();
+}
+
+
+/** \brief Increment offsets.
+ */
+void TextReaderImpl::increment()
+{
+    if (!offset_.empty()) {
+        ++offset_.back();
+    }
 }
 
 
 /** \brief Parse key from JSON reader.
  */
-static void parseKey(TextReader &reader)
+void TextReaderImpl::parseKey()
 {
-    switch (reader.stream().peek()) {
+    switch (stream_->peek()) {
         case '"':
-            parseString(reader.stream(), reader.buffer()[0], reader.type());
+            parseString(*stream_, buffer_[0], type_);
             break;
         default:
             throw ParserError("Unexpected characters found for object key.");
@@ -384,94 +512,94 @@ static void parseKey(TextReader &reader)
 
 /** \brief Parse value from JSON reader.
  */
-static void parseValue(TextReader &reader)
+void TextReaderImpl::parseValue()
 {
-    switch (reader.stream().peek()) {
+    switch (stream_->peek()) {
         case '}':
         case ']':
             throw ParserError("Unexpected ending characters.");
         case '{':
-            startObject(reader);
+            startObject();
             break;
         case '[':
-            startArray(reader);
+            startArray();
             break;
         case ',':
         case ':':
             throw ParserError("Unexpected character delimiters.");
         case '"':
-            parseString(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseString(*stream_, buffer_[1], type_);
+            increment();
             break;
         case 'n':
-            parseNull(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseNull(*stream_, buffer_[1], type_);
+            increment();
             break;
         case 't':
-            parseTrue(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseTrue(*stream_, buffer_[1], type_);
+            increment();
             break;
         case 'f':
-            parseFalse(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseFalse(*stream_, buffer_[1], type_);
+            increment();
             break;
         case 'i':
-            parseInf(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseInf(*stream_, buffer_[1], type_);
+            increment();
             break;
         case 'N':
-            parseNan(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseNan(*stream_, buffer_[1], type_);
+            increment();
             break;
         default:
-            parseNumber(reader.stream(), reader.buffer()[1], reader.type());
-            if (!reader.offset().empty()) {
-                ++reader.offset().back();
-            }
+            parseNumber(*stream_, buffer_[1], type_);
+            increment();
             break;
     }
+}
+
+
+/** \brief Parse key-value pair from an object.
+ */
+void TextReaderImpl::parsePair()
+{
+    parseKey();
+    skipWhitespace(*stream_);
+    if (!consume(*stream_, ':')) {
+        throw ParserError("No : separating key-value pairs.");
+    }
+    skipWhitespace(*stream_);
+    parseValue();
 }
 
 
 /** \brief Parse value from an array.
  */
-static void parseArray(TextReader &reader)
+void TextReaderImpl::parseArray()
 {
      // sequential JSON items
-    size_t offset = reader.offset().empty() ? 0 : reader.offset().back();
-    switch (reader.stream().peek()) {
+    size_t offset = offset_.empty() ? 0 : offset_.back();
+    switch (stream_->peek()) {
         case ',': {
             if (offset == 0) {
                 throw ParserError("Cannot have comma after [ or {.");
             } else {
                 // item is properly delimited by a comma
-                reader.stream().get();
-                skipWhitespace(reader.stream());
-                parseValue(reader);
+                stream_->get();
+                skipWhitespace(*stream_);
+                parseValue();
             }
             break;
         }
         case ']': {
             // end element should not have a comma before it.
-            endArray(reader);
+            endArray();
             break;
         }
         default: {
             if (offset == 0) {
                 // no preceding elements, no comma expected
-                parseValue(reader);
+                parseValue();
             } else {
                 throw ParserError("Expected ']' or ',' character.");
             }
@@ -482,46 +610,62 @@ static void parseArray(TextReader &reader)
 
 /** \brief Parse key-value pair from an object.
  */
-static void parseObjectImpl(TextReader &reader)
+void TextReaderImpl::parseObject()
 {
-    parseKey(reader);
-    skipWhitespace(reader.stream());
-    if (!consume(reader.stream(), ':')) {
-        throw ParserError("No : separating key-value pairs.");
-    }
-    skipWhitespace(reader.stream());
-    parseValue(reader);
-}
-
-
-/** \brief Parse key-value pair from an object.
- */
-static void parseObject(TextReader &reader)
-{
-    size_t offset = reader.offset().empty() ? 0 : reader.offset().back();
-    switch (reader.stream().peek()) {
+    size_t offset = offset_.empty() ? 0 : offset_.back();
+    switch (stream_->peek()) {
         case ',': {
             if (offset == 0) {
                 throw ParserError("Cannot have comma after [ or {.");
             } else {
                 // item is properly delimited by a comma
-                reader.stream().get();
-                skipWhitespace(reader.stream());
-                parseObjectImpl(reader);
+                stream_->get();
+                skipWhitespace(*stream_);
+                parsePair();
             }
             break;
         }
         case '}': {
             // end element should not have a comma before it.
-            endObject(reader);
+            endObject();
             break;
         }
         default: {
             if (offset == 0) {
                 // no preceding elements, no comma expected
-                parseObjectImpl(reader);
+                parsePair();
             } else {
                 throw ParserError("Expected ']' or ',' character.");
+            }
+        }
+    }
+}
+
+
+/** \brief Seek first element in buffer and parse first node.
+ */
+void TextReaderImpl::parseStart()
+{
+    skipWhitespace(*stream_);
+
+    // validate first character
+    switch (stream_->peek()) {
+        case '\0':
+        case EOF:
+            throw ParserError("Empty JSON document\n");
+        case '{':
+            startObject();
+            break;
+        case '[':
+            startArray();
+            break;
+        default: {
+            // no root element -- RFC 7159 only
+            parseValue();
+            skipWhitespace(*stream_);
+            const char c = stream_->peek();
+            if (!(c == EOF || c == '\0')) {
+                throw ParserError("Extra data.");
             }
         }
     }
@@ -530,47 +674,54 @@ static void parseObject(TextReader &reader)
 
 /** \brief Parse item from stream.
  */
-static void parse(TextReader &reader)
+void TextReaderImpl::parseNode()
 {
-    reader.buffer()[0].clear();
-    reader.buffer()[1].clear();
-    skipWhitespace(reader.stream());
+    buffer_[0].clear();
+    buffer_[1].clear();
+    skipWhitespace(*stream_);
 
-    if (reader.isArray()) {
-        parseArray(reader);
-    } else if (reader.isObject()) {
-        parseObject(reader);
+    // if at the end of the file, break early
+    switch (stream_->peek()) {
+        case '\0':
+        case EOF:
+            return;
+        default:
+            break;
     }
+
+    // parse remaining data
+    if (!node_.empty()) {
+        switch (node_.back()) {
+            case NodeType::ARRAY:
+                parseArray();
+                return;
+            case NodeType::OBJECT:
+                parseObject();
+                return;
+        }
+    }
+
+    throw ParserError("Unexpected trailing characters from node.");
 }
 
 
-/** \brief Seek first element in buffer and parse first node.
+/** \brief Open text parser.
  */
-static void readStart(TextReader &reader)
+void TextReaderImpl::open(std::istream &stream)
 {
-    skipWhitespace(reader.stream());
+    stream_ = &stream;
+    // reserve 1 Mb, to avoid reallocations
+    buffer_[0].reserve(1048576);
+    buffer_[1].reserve(1048576);
+    parseStart();
+}
 
-    // validate first character
-    switch (reader.stream().peek()) {
-        case '\0':
-        case EOF:
-            throw ParserError("Empty JSON document\n");
-        case '{':
-            startObject(reader);
-            break;
-        case '[':
-            startArray(reader);
-            break;
-        default: {
-            // no root element -- RFC 7159 only
-            parseValue(reader);
-            skipWhitespace(reader.stream());
-            const char c = reader.stream().peek();
-            if (!(c == EOF || c == '\0')) {
-                throw ParserError("Extra data.");
-            }
-        }
-    }
+
+/** \brief Initializer list constructor.
+ */
+TextReaderImpl::TextReaderImpl(std::istream &stream)
+{
+    open(stream);
 }
 
 }   /* detail */
@@ -579,87 +730,11 @@ static void readStart(TextReader &reader)
 // -------
 
 
-/** \brief Open text parser.
- */
-void TextReader::open(std::istream &stream)
-{
-    stream_ = &stream;
-    // reserve 1 Mb, to avoid reallocations
-    buffer()[0].reserve(1048576);
-    buffer()[1].reserve(1048576);
-    detail::readStart(*this);
-}
-
-
 /** \brief Initializer list constructor.
  */
 TextReader::TextReader(std::istream &stream)
 {
-    open(stream);
-}
-
-
-/** \brief Get reference to stream.
- */
-std::istream & TextReader::stream()
-{
-    return *stream_;
-}
-
-
-/** \brief Get const reference to stream.
- */
-const std::istream & TextReader::stream() const
-{
-    return *stream_;
-}
-
-
-/** \brief Get reference to node.
- */
-std::deque<NodeType> & TextReader::node()
-{
-    return node_;
-}
-
-
-/** \brief Get const reference to node.
- */
-const std::deque<NodeType> & TextReader::node() const
-{
-    return node_;
-}
-
-
-/** \brief Get reference to offset.
- */
-std::deque<size_t> & TextReader::offset()
-{
-    return offset_;
-}
-
-
-/** \brief Get const reference to offset.
- */
-const std::deque<size_t> & TextReader::offset() const
-{
-    return offset_;
-}
-
-
-/** \brief Get reference to buffer.
- */
-std::array<std::string, 2> & TextReader::buffer()
-{
-    return buffer_;
-}
-
-
-/** \brief Get const reference to buffer.
- */
-const std::array<std::string, 2> & TextReader::buffer() const
-{
-    return buffer_;
+    TextReaderImpl::open(stream);
 }
 
 
@@ -683,7 +758,7 @@ const ValueType & TextReader::type() const
  */
 size_t TextReader::depth() const
 {
-    return node().size();
+    return node_.size();
 }
 
 
@@ -691,7 +766,7 @@ size_t TextReader::depth() const
  */
 bool TextReader::isEof() const
 {
-    return stream().eof() || stream_->peek() == EOF;
+    return stream_->eof() || stream_->peek() == EOF;
 }
 
 
@@ -699,7 +774,7 @@ bool TextReader::isEof() const
  */
 bool TextReader::isBad() const
 {
-    return stream().bad();
+    return stream_->bad();
 }
 
 
@@ -709,7 +784,8 @@ bool TextReader::isBad() const
  */
 bool TextReader::isValid() const
 {
-    return !node().empty() && !(isBad() || isEof());
+    // !node_.empty() &&
+    return !(isBad() || isEof());
 }
 
 
@@ -717,7 +793,7 @@ bool TextReader::isValid() const
  */
 bool TextReader::isNull() const
 {
-    return type() == ValueType::NULLPTR;
+    return type_ == ValueType::NULLPTR;
 }
 
 
@@ -725,7 +801,7 @@ bool TextReader::isNull() const
  */
 bool TextReader::isBool() const
 {
-    return type() == ValueType::BOOLEAN;
+    return type_ == ValueType::BOOLEAN;
 }
 
 
@@ -733,7 +809,7 @@ bool TextReader::isBool() const
  */
 bool TextReader::isNumber() const
 {
-    return type() == ValueType::NUMBER;
+    return type_ == ValueType::NUMBER;
 }
 
 
@@ -741,7 +817,7 @@ bool TextReader::isNumber() const
  */
 bool TextReader::isString() const
 {
-    return type() == ValueType::STRING;
+    return type_ == ValueType::STRING;
 }
 
 
@@ -749,10 +825,10 @@ bool TextReader::isString() const
  */
 bool TextReader::isArray() const
 {
-    if (node().empty()) {
+    if (node_.empty()) {
         return false;
     }
-    return node().back() == NodeType::ARRAY;
+    return node_.back() == NodeType::ARRAY;
 }
 
 
@@ -760,10 +836,10 @@ bool TextReader::isArray() const
  */
 bool TextReader::isObject() const
 {
-    if (node().empty()) {
+    if (node_.empty()) {
         return false;
     }
-    return node().back() == NodeType::OBJECT;
+    return node_.back() == NodeType::OBJECT;
 }
 
 
@@ -771,8 +847,13 @@ bool TextReader::isObject() const
  */
 bool TextReader::read()
 {
-    detail::parse(*this);
-
+    if (isValid()) {
+        parseNode();
+    }
+    if (!isValid() && !node_.empty()) {
+        // unclosed item, after parsing finished
+        throw ParserError("Unclosed `{` or `[` character.");
+    }
     return true;
 }
 

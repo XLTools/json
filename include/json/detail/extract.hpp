@@ -65,6 +65,13 @@ struct Extract
     enable_if_t<is_float_v<U>, U>
     operator()(const std::string &string)
     {
+        if (string == "NaN") {
+            return std::numeric_limits<T>::quiet_NaN();
+        } else if (string == "inf") {
+            return std::numeric_limits<T>::infinity();
+        } else if (string == "-inf") {
+            return -std::numeric_limits<T>::infinity();
+        }
         return std::stod(string);
     }
 };

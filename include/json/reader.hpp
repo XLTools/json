@@ -20,13 +20,15 @@
 
 namespace json
 {
-// OBJECTS
-// -------
+namespace detail
+{
+// DETAIL
+// ------
 
 
-/** \brief Base text reader for JSON parsing.
+/** \brief Private base class for JSON parsing.
  */
-class TextReader
+class TextReaderImpl
 {
 protected:
     std::istream *stream_ = nullptr;
@@ -35,8 +37,46 @@ protected:
     std::array<std::string, 2> buffer_;
     ValueType type_;
 
-    TextReader() = default;
+    // NODES
+    void startObject();
+    void endObject();
+    void startArray();
+    void endArray();
+
+    // ELEMENTS
+    void increment();
+
+    // PARSERS -- SPECIFIC
+    void parseKey();
+    void parseValue();
+    void parsePair();
+    void parseArray();
+    void parseObject();
+
+    // PARSERS -- GENERIC
+    void parseStart();
+    void parseNode();
+
+    TextReaderImpl() = default;
     void open(std::istream &stream);
+
+public:
+    TextReaderImpl(std::istream &stream);
+};
+
+
+}   /* detail */
+
+// OBJECTS
+// -------
+
+
+/** \brief Base text reader for JSON parsing.
+ */
+class TextReader: protected detail::TextReaderImpl
+{
+protected:
+    TextReader() = default;
 
 public:
     TextReader(const TextReader&) = delete;
@@ -46,15 +86,6 @@ public:
 
     TextReader(std::istream &stream);
 
-    // INTERNAL
-    std::istream & stream();
-    const std::istream & stream() const;
-    std::deque<NodeType> & node();
-    const std::deque<NodeType> & node() const;
-    std::deque<size_t> & offset();
-    const std::deque<size_t> & offset() const;
-    std::array<std::string, 2> & buffer();
-    const std::array<std::string, 2> & buffer() const;
     ValueType & type();
     const ValueType & type() const;
 
@@ -119,7 +150,7 @@ T TextReader::key() const
     }
 
     detail::Extract<T> extract;
-    return extract(buffer()[0]);
+    return extract(buffer_[0]);
 }
 
 
@@ -129,7 +160,7 @@ template <typename T>
 T TextReader::value() const
 {
     detail::Extract<T> extract;
-    return extract(buffer()[1]);
+    return extract(buffer_[1]);
 }
 
 
