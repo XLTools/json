@@ -13,8 +13,8 @@ Json++ is a memory-efficient, dependency-free, lazy C++11 JSON reader and writer
 - [Portability](#portability)
 - [Documentation](#documentation)
 - [Planned Features](#planned-features)
-- [Contributors](#contributors)
-- [Contributors Guidelines](#contributors-guidelines)
+- [Acknowledgments](#acknowledgements)
+- [Contributor Guidelines](#contributor-guidelines)
 - [License](#license)
 
 ## Motivation
@@ -92,9 +92,7 @@ Coming soon, for now, see the the [examples](/example) for how to use Json++.
 - Pretty Printing
 - Fast string formatting and extraction (replacing std::to_string and std::stod).
 
-## Contributors
-
-- Alex Huszagh
+## Acknowledgments
 
 Json++ also uses some code and test files from Niels Lohmann and Milo Yip, from their [Json](https://github.com/nlohmann/json) and [RapidJson](https://github.com/miloyip/rapidjson/) projects. All files in the [jsonchecker](/test/data/jsonchecker) directory are from Milo Yip's [nativejson-benchmark](https://github.com/miloyip/nativejson-benchmark/tree/master/data/roundtrip) and the remaining sample files come from Niel Lohmann's JSON tests.
 

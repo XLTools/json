@@ -1,5 +1,5 @@
 #  :copyright: (c) 2015-2017 The Regents of the University of California.
-#  :license: MIT, see licenses/mit.md for more details.
+#  :license: MIT, see LICENSE.md for more details.
 
 cmake_minimum_required(VERSION 3.4)
 project(JSON CXX)
@@ -49,22 +49,27 @@ if(BUILD_STATIC)
 else()
     add_library(JSON SHARED ${SOURCE_FILES})
 endif()
+set_target_properties(JSON PROPERTIES OUTPUT_NAME json)
 
 # EXAMPLES
 # --------
 
-if(BUILD_TESTS)
+if(BUILD_EXAMPLES)
     add_executable(JSONSimpleWriter example/simplewriter.cpp)
     target_link_libraries(JSONSimpleWriter JSON)
+    set_target_properties(JSONSimpleWriter PROPERTIES OUTPUT_NAME json_simplewriter)
 
     add_executable(JSONSimpleReader example/simplereader.cpp)
     target_link_libraries(JSONSimpleReader JSON)
+    set_target_properties(JSONSimpleReader PROPERTIES OUTPUT_NAME json_simplereader)
 
     add_executable(JSONRange example/range.cpp)
     target_link_libraries(JSONRange JSON)
+    set_target_properties(JSONRange PROPERTIES OUTPUT_NAME json_range)
 
     add_executable(JSONStl example/stl.cpp)
     target_link_libraries(JSONStl JSON)
+    set_target_properties(JSONStl PROPERTIES OUTPUT_NAME json_stl)
 endif()
 
 # TESTS
@@ -90,6 +95,7 @@ if(BUILD_TESTS)
         gtest_main
         JSON
     )
+    set_target_properties(JSON_TESTS PROPERTIES OUTPUT_NAME test)
 
      add_custom_target(check_json
         COMMAND $<TARGET_FILE:JSON_TESTS>
@@ -108,8 +114,10 @@ if(BUILD_FUZZ AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     find_package(Threads)
 
     add_executable(JSONFuzzReader test/fuzz/reader.cpp)
-    add_executable(JSONFuzzWriter test/fuzz/writer.cpp)
-
     target_link_libraries(JSONFuzzReader LLVMFuzzer JSON Threads::Threads)
+    set_target_properties(JSONFuzzReader PROPERTIES OUTPUT_NAME json_fuzzreader)
+
+    add_executable(JSONFuzzWriter test/fuzz/writer.cpp)
     target_link_libraries(JSONFuzzWriter LLVMFuzzer JSON Threads::Threads)
+    set_target_properties(JSONFuzzWriter PROPERTIES OUTPUT_NAME json_fuzzwriter)
 endif()

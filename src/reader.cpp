@@ -269,9 +269,9 @@ static void parseInf(std::istream &stream,
     std::string &string,
     ValueType &type)
 {
-    if (consume(stream, 'i') && consume(stream, 'n') && consume(stream, 'f')) {
+    if (consume(stream, 'I') && consume(stream, 'n') && consume(stream, 'f') && consume(stream, 'i') && consume(stream, 'n') && consume(stream, 'i') && consume(stream, 't') && consume(stream, 'y')) {
         type = ValueType::NUMBER;
-        string += "inf";
+        string += "Infinity";
     } else {
         throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
@@ -345,7 +345,7 @@ static void parseNumber(std::istream &stream,
     if (minus) {
         string += '-';
         // can have a negative inf value, check
-        if (stream.peek() == 'i') {
+        if (stream.peek() == 'I') {
             parseInf(stream, string, type);
             return;
         }
@@ -543,7 +543,7 @@ void TextReaderImpl::parseValue()
             parseFalse(*stream_, buffer_[1], type_);
             increment();
             break;
-        case 'i':
+        case 'I':
             parseInf(*stream_, buffer_[1], type_);
             increment();
             break;
