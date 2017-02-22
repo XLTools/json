@@ -226,7 +226,7 @@ static void parseNull(std::istream &stream,
 {
     if (consume(stream, 'n') && consume(stream, 'u') && consume(stream, 'l') && consume(stream, 'l')) {
         type = ValueType::NULLPTR;
-        string = "null";
+        string += "null";
     } else {
         throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
@@ -241,7 +241,7 @@ static void parseTrue(std::istream &stream,
 {
     if (consume(stream, 't') && consume(stream, 'r') && consume(stream, 'u') && consume(stream, 'e')) {
         type = ValueType::BOOLEAN;
-        string = "true";
+        string += "true";
     } else {
         throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
@@ -256,7 +256,7 @@ static void parseFalse(std::istream &stream,
 {
     if (consume(stream, 'f') && consume(stream, 'a') && consume(stream, 'l') && consume(stream, 's') && consume(stream, 'e')) {
         type = ValueType::BOOLEAN;
-        string = "false";
+        string += "false";
     } else {
         throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }
@@ -286,7 +286,7 @@ static void parseNan(std::istream &stream,
 {
     if (consume(stream, 'N') && consume(stream, 'a') && consume(stream, 'N')) {
         type = ValueType::NUMBER;
-        string = "NaN";
+        string += "NaN";
     } else {
         throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
     }

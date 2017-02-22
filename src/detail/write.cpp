@@ -111,9 +111,9 @@ std::ostream & write(std::ostream &stream,
         if (isNan(number)) {
             stream.write("NaN", 3);
         } else if (isInfinity(number)) {
-            stream.write("inf", 3);
+            stream.write("Infinity", 3);
         } else {
-            stream.write("-inf", 4);
+            stream.write("-Infinity", 4);
         }
     } else if (isZero(number)) {
         if (isPositive(number)) {

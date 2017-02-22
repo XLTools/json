@@ -18,11 +18,11 @@ namespace detail
 // CONSTANTS
 // ---------
 
-static const uint64_t EXPONENT_MASK = 0x7FF0000000000000;
-static const uint64_t SIGNIFICAND_MASK = 0x000FFFFFFFFFFFFF;
-static const uint64_t SIGN_MASK = 0x8000000000000000;
-static const uint64_t INFINITY = 0x7FF0000000000000;
-static const uint64_t NEGATIVE_INFINITY = 0xFFF0000000000000;
+static const uint64_t EXPONENT_MASK = 0x7FF0000000000000ULL;
+static const uint64_t SIGNIFICAND_MASK = 0x000FFFFFFFFFFFFFULL;
+static const uint64_t SIGN_MASK = 0x8000000000000000ULL;
+static const uint64_t INFINITY = 0x7FF0000000000000ULL;
+static const uint64_t NEGATIVE_INFINITY = 0xFFF0000000000000ULL;
 
 // FUNCTIONS
 // ---------

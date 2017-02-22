@@ -42,7 +42,7 @@ public:
 
     template<
         typename T,
-        typename = detail::enable_if_t<detail::is_array_v<T>, T>
+        typename = enable_if_t<is_array_v<T>, T>
     >
     explicit operator T();
 };
@@ -71,7 +71,7 @@ public:
 
     template<
         typename T,
-        typename = detail::enable_if_t<detail::is_object_v<T>, T>
+        typename = enable_if_t<is_object_v<T>, T>
     >
     explicit operator T();
 };
@@ -102,7 +102,7 @@ ArrayView::operator T()
 template <typename T, typename>
 ObjectView::operator T()
 {
-    static_assert(detail::is_object_v<T>, "");
+    static_assert(is_object_v<T>, "");
     typedef typename T::key_type K;
     typedef typename T::mapped_type M;
 
