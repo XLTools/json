@@ -9,8 +9,9 @@
 
 #include "type.hpp"
 
+#include <lexi/lexi.hpp>
+
 #include <ostream>
-#include <string>
 
 
 namespace json
@@ -20,145 +21,48 @@ namespace detail
 // FUNCTIONS
 // ---------
 
-/** \brief Write null.
- */
-std::ostream & write(std::ostream &stream,
-    const std::nullptr_t nullp);
 
-/** \brief Write bool.
+/** \brief Write data to stream.
  */
-std::ostream & write(std::ostream &stream,
-    const bool boolean);
+template <typename T>
+enable_if_t<!is_array_v<T> && !is_object_v<T>, std::ostream&>
+write(std::ostream &stream,
+    const T &t)
+{
+    auto string = lexi::jsonify(t);
+    stream.write(string.data(), string.size());
 
-/** \brief Write C-string.
- */
-std::ostream & write(std::ostream &stream,
-    const char *string);
+    return stream;
+}
 
-/** \brief Write string.
- */
-std::ostream & write(std::ostream &stream,
-    const std::string &string);
 
-/** \brief Write character.
+/** \brief Write quoted key from quoted value.
  */
-std::ostream & write(std::ostream &stream,
-    const char character);
+template <typename T>
+enable_if_t<lexi::is_string_v<T>, std::ostream&>
+writeKey(std::ostream &stream,
+    const T &t)
+{
+    auto string = lexi::jsonify(t);
+    stream.write(string.data(), string.size());
 
-/** \brief Write unsigned character.
- */
-std::ostream & write(std::ostream &stream,
-    const unsigned char character);
+    return stream;
+}
 
-/** \brief Write float.
- */
-std::ostream & write(std::ostream &stream,
-    const float number);
 
-/** \brief Write double.
+/** \brief Write quoted key from unquoted value.
  */
-std::ostream & write(std::ostream &stream,
-    const double number);
+template <typename T>
+enable_if_t<!lexi::is_string_v<T>, std::ostream&>
+writeKey(std::ostream &stream,
+    const T &t)
+{
+    auto string = "\"" + lexi::jsonify(t) + "\"";
+    stream.write(string.data(), string.size());
 
-/** \brief Write integer.
- */
-std::ostream & write(std::ostream &stream,
-    const int16_t number);
+    return stream;
+}
 
-/** \brief Write integer.
- */
-std::ostream & write(std::ostream &stream,
-    const uint16_t number);
-
-/** \brief Write integer.
- */
-std::ostream & write(std::ostream &stream,
-    const int32_t number);
-
-/** \brief Write integer.
- */
-std::ostream & write(std::ostream &stream,
-    const uint32_t number);
-
-/** \brief Write integer.
- */
-std::ostream & write(std::ostream &stream,
-    const int64_t number);
-
-/** \brief Write integer.
- */
-std::ostream & write(std::ostream &stream,
-    const uint64_t number);
-
-/** \brief Write null key.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const std::nullptr_t nullp);
-
-/** \brief Write bool.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const bool boolean);
-
-/** \brief Write C-string.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const char *string);
-
-/** \brief Write string.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const std::string &string);
-
-/** \brief Write character.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const char character);
-
-/** \brief Write unsigned character.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const unsigned char character);
-
-/** \brief Write float.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const float number);
-
-/** \brief Write double.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const double number);
-
-/** \brief Write integer.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const int16_t number);
-
-/** \brief Write integer.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const uint16_t number);
-
-/** \brief Write integer.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const int32_t number);
-
-/** \brief Write integer.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const uint32_t number);
-
-/** \brief Write integer.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const int64_t number);
-
-/** \brief Write integer.
- */
-std::ostream & writeKey(std::ostream &stream,
-    const uint64_t number);
 
 /** \brief Write value.
  */
