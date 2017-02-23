@@ -130,9 +130,13 @@ bool TextWriter::isObject() const
  */
 bool TextWriter::startObject()
 {
-    JSON_CHECK_ROOT_OR_ARRAY();
-
-    writeValueDelimiter();
+    JSON_ACCEPTS_VALUE();
+    // don't write a value delimiter if a key has been written
+    if (!intermediate) {
+        writeValueDelimiter();
+    } else {
+        intermediate = false;
+    }
     stream->put(START_OBJECT);
     node.emplace_back(NodeType::OBJECT);
     offset.emplace_back(0);
@@ -145,7 +149,7 @@ bool TextWriter::startObject()
  */
 bool TextWriter::startObject(const std::string &key)
 {
-    JSON_CHECK_OBJECT();
+    JSON_ACCEPTS_KEY();
 
     writeValueDelimiter();
     stream->write(key.data(), key.size());
@@ -162,7 +166,7 @@ bool TextWriter::startObject(const std::string &key)
  */
 bool TextWriter::endObject()
 {
-    JSON_CHECK_OBJECT();
+    JSON_ACCEPTS_KEY();
 
     stream->put(END_OBJECT);
     node.pop_back();
@@ -179,9 +183,13 @@ bool TextWriter::endObject()
  */
 bool TextWriter::startArray()
 {
-    JSON_CHECK_ROOT_OR_ARRAY();
-
-    writeValueDelimiter();
+    JSON_ACCEPTS_VALUE();
+    // don't write a value delimiter if a key has been written
+    if (!intermediate) {
+        writeValueDelimiter();
+    } else {
+        intermediate = false;
+    }
     stream->put(START_ARRAY);
     node.emplace_back(NodeType::ARRAY);
     offset.emplace_back(0);
@@ -194,7 +202,7 @@ bool TextWriter::startArray()
  */
 bool TextWriter::startArray(const std::string &key)
 {
-    JSON_CHECK_OBJECT();
+    JSON_ACCEPTS_KEY();
 
     writeValueDelimiter();
     stream->write(key.data(), key.size());

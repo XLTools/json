@@ -26,22 +26,30 @@ namespace json
 /** \brief Check the current element is an array element.
  */
 #define JSON_CHECK_ARRAY()                                              \
-    if (!isArray()) {                                                   \
+    if (!isArray() || intermediate) {                                   \
         throw NodeError("TextWriter::isArray() -> false.");             \
     }
 
-/** \brief Check the current element is an array element, or root element.
+/** \brief Check the current element takes a key.
+ *
+ *  Must be an object and not have a key value.
+ *  Use for node-start and end from object elements, since it must
+ *  not be in an intermediate state.
  */
-#define JSON_CHECK_ROOT_OR_ARRAY()                                      \
-    if (!node.empty() && !isArray()) {                                  \
-        throw NodeError("TextWriter::isArray() -> false.");             \
+#define JSON_ACCEPTS_KEY()                                              \
+    if (!isObject() || intermediate) {                                  \
+        throw NodeError("TextWriter does not accept key.");             \
     }
 
-/** \brief Check the current element is an object element.
+
+/** \brief Check the current element takes a value.
+ *
+ *  Can be an array, or be an object and have an intermediate value,
+ *  or have no-root element.
  */
-#define JSON_CHECK_OBJECT()                                             \
-    if (!isObject()) {                                                  \
-        throw NodeError("TextWriter::isObject() -> false.");            \
+#define JSON_ACCEPTS_VALUE()                                            \
+    if (!((isObject() && intermediate) || isArray() || node.empty())) { \
+        throw NodeError("TextWriter does not accept value.");           \
     }
 
 // OBJECTS
@@ -56,6 +64,7 @@ protected:
     std::ostream *stream = nullptr;
     std::deque<NodeType> node;
     std::deque<size_t> offset;
+    bool intermediate = false;
 
     TextWriter() = default;
     void open(std::ostream &stream);
@@ -98,6 +107,15 @@ public:
     void write(const T &t, const U &u);
     template <typename T, typename U>
     void write(T &&t, U &&u);
+
+    template <typename T>
+    void writeKey(const T &t);
+    template <typename T>
+    void writeKey(T &&t);
+    template <typename T>
+    void writeValue(const T &t);
+    template <typename T>
+    void writeValue(T &&t);
 };
 
 
@@ -136,7 +154,7 @@ public:
 template <typename T>
 void TextWriter::write(const T &t)
 {
-    JSON_CHECK_ROOT_OR_ARRAY();
+    JSON_ACCEPTS_VALUE();
 
     writeValueDelimiter();
     detail::write(*stream, t);
@@ -148,7 +166,7 @@ void TextWriter::write(const T &t)
 template <typename T>
 void TextWriter::write(T &&t)
 {
-    JSON_CHECK_ROOT_OR_ARRAY();
+    JSON_ACCEPTS_VALUE();
 
     writeValueDelimiter();
     detail::write(*stream, std::forward<T>(t));
@@ -160,7 +178,7 @@ void TextWriter::write(T &&t)
 template <typename T, typename U>
 void TextWriter::write(const T &t, const U &u)
 {
-    JSON_CHECK_OBJECT();
+    JSON_ACCEPTS_KEY();
 
     writeValueDelimiter();
     detail::writeKey(*stream, t);
@@ -174,12 +192,66 @@ void TextWriter::write(const T &t, const U &u)
 template <typename T, typename U>
 void TextWriter::write(T &&t, U &&u)
 {
-    JSON_CHECK_OBJECT();
+    JSON_ACCEPTS_KEY();
 
     writeValueDelimiter();
     detail::writeKey(*stream, std::forward<T>(t));
     writeKeyDelimiter();
     detail::writeValue(*stream, std::forward<U>(u));
 }
+
+
+/** \brief Write key to object.
+ */
+template <typename T>
+void TextWriter::writeKey(const T &t)
+{
+    JSON_ACCEPTS_KEY();
+
+    writeValueDelimiter();
+    detail::writeKey(*stream, t);
+    writeKeyDelimiter();
+    intermediate = true;
+}
+
+
+/** \brief Write key to object with perfect forwarding.
+ */
+template <typename T>
+void TextWriter::writeKey(T &&t)
+{
+    JSON_ACCEPTS_KEY();
+
+    writeValueDelimiter();
+    detail::writeKey(*stream, std::forward<T>(t));
+    writeKeyDelimiter();
+    intermediate = true;
+}
+
+
+/** \brief Write value to object.
+ */
+template <typename T>
+void TextWriter::writeValue(const T &t)
+{
+    JSON_ACCEPTS_VALUE();
+
+    detail::writeValue(*stream, t);
+    intermediate = false;
+}
+
+
+/** \brief Write value to object with perfect forwarding.
+ */
+template <typename T>
+void TextWriter::writeValue(T &&t)
+{
+    JSON_ACCEPTS_VALUE();
+
+    detail::writeValue(*stream, std::forward<T>(t));
+    intermediate = false;
+}
+
+
 
 }   /* json */

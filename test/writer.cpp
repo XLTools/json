@@ -77,3 +77,54 @@ TEST(TextWriter, IntListDict)
     writer.endArray();
     EXPECT_EQ(writer.str(), "[1,[1],{\"1\":2,\"3\":4,\"5\":6}]");
 }
+
+
+TEST(TextWriter, NestedKeys)
+{
+    json::StringTextWriter writer;
+    writer.startObject();
+    writer.writeKey(1);
+    writer.startObject();
+    writer.endObject();
+    writer.endObject();
+    EXPECT_EQ(writer.str(), "{\"1\":{}}");
+}
+
+
+TEST(TextWriter, SeparatedKeyValue)
+{
+    json::StringTextWriter writer;
+    writer.startObject();
+    writer.writeKey(1);
+    writer.writeValue(2);
+    writer.writeKey(3);
+    writer.writeValue(4);
+    writer.endObject();
+    EXPECT_EQ(writer.str(), "{\"1\":2,\"3\":4}");
+}
+
+
+TEST(TextWriter, ImproperClose)
+{
+    json::StringTextWriter writer;
+    writer.startObject();
+    writer.writeKey(1);
+    ASSERT_THROW(writer.endObject(), json::NodeError);
+}
+
+
+TEST(TextWriter, ImproperKey)
+{
+    json::StringTextWriter writer;
+    writer.startArray();
+    ASSERT_THROW(writer.writeKey(1), json::NodeError);
+}
+
+
+TEST(TextWriter, DuplicateKeys)
+{
+    json::StringTextWriter writer;
+    writer.startObject();
+    writer.writeKey(1);
+    ASSERT_THROW(writer.writeKey(1), json::NodeError);
+}
