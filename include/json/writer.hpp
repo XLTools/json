@@ -165,7 +165,7 @@ void TextWriter::write(const T &t, const U &u)
     writeValueDelimiter();
     detail::writeKey(*stream, t);
     writeKeyDelimiter();
-    detail::write(*stream, u);
+    detail::writeValue(*stream, u);
 }
 
 
@@ -179,7 +179,7 @@ void TextWriter::write(T &&t, U &&u)
     writeValueDelimiter();
     detail::writeKey(*stream, std::forward<T>(t));
     writeKeyDelimiter();
-    detail::write(*stream, std::forward<U>(u));
+    detail::writeValue(*stream, std::forward<U>(u));
 }
 
 }   /* json */
