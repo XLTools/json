@@ -8,7 +8,8 @@
 #pragma once
 
 #include "node.hpp"
-#include "lexi/lexi.hpp"
+
+#include <lexi/lexi.hpp>
 
 #include <iterator>
 

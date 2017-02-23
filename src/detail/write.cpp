@@ -5,9 +5,10 @@
  *  \brief Write types to stream.
  */
 
-#include "lexi/lexi.hpp"
 #include "json/detail/string.hpp"
 #include "json/detail/write.hpp"
+
+#include <lexi/lexi.hpp>
 
 
 namespace json
