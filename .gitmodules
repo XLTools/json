@@ -4,3 +4,6 @@
 [submodule "Fuzzer"]
 	path = Fuzzer
 	url = https://github.com/Alexhuszagh/Fuzzer
+[submodule "lexi"]
+	path = lexi
+	url = https://github.com/Alexhuszagh/lexi.git

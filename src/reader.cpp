@@ -228,7 +228,7 @@ static void parseNull(std::istream &stream,
         type = ValueType::NULLPTR;
         string += "null";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
+        throw ParserError("Unknown stream value: " + lexi::lexi(stream.tellg()));
     }
 }
 
@@ -243,7 +243,7 @@ static void parseTrue(std::istream &stream,
         type = ValueType::BOOLEAN;
         string += "true";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
+        throw ParserError("Unknown stream value: " + lexi::lexi(stream.tellg()));
     }
 }
 
@@ -258,7 +258,7 @@ static void parseFalse(std::istream &stream,
         type = ValueType::BOOLEAN;
         string += "false";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
+        throw ParserError("Unknown stream value: " + lexi::lexi(stream.tellg()));
     }
 }
 
@@ -273,7 +273,7 @@ static void parseInf(std::istream &stream,
         type = ValueType::NUMBER;
         string += "Infinity";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
+        throw ParserError("Unknown stream value: " + lexi::lexi(stream.tellg()));
     }
 }
 
@@ -288,7 +288,7 @@ static void parseNan(std::istream &stream,
         type = ValueType::NUMBER;
         string += "NaN";
     } else {
-        throw ParserError("Unknown stream value: " + std::to_string(stream.tellg()));
+        throw ParserError("Unknown stream value: " + lexi::lexi(stream.tellg()));
     }
 }
 

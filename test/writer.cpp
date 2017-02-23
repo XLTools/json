@@ -25,7 +25,7 @@ TEST(TextWriter, WriteMap)
 
     json::StringTextWriter writer;
     writer.write(m);
-    EXPECT_EQ(writer.str(), "{1:2,3:4,5:6}");
+    EXPECT_EQ(writer.str(), "{\"1\":2,\"3\":4,\"5\":6}");
 }
 
 
@@ -75,5 +75,5 @@ TEST(TextWriter, IntListDict)
     writer.write(v);
     writer.write(m);
     writer.endArray();
-    EXPECT_EQ(writer.str(), "[1,[1],{1:2,3:4,5:6}]");
+    EXPECT_EQ(writer.str(), "[1,[1],{\"1\":2,\"3\":4,\"5\":6}]");
 }

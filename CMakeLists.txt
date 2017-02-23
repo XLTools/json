@@ -27,15 +27,19 @@ if(BUILD_STATIC)
     endif()
 endif()
 
+# DEPENDENCIES
+# ------------
+
+add_subdirectory(lexi)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lexi/include")
+
 # LIBRARY
 # -------
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(SOURCE_FILES
-    src/detail/ieee754.cpp
     src/detail/string.cpp
-    src/detail/wrapper.cpp
     src/detail/write.cpp
     src/except.cpp
     src/iterator.cpp
@@ -56,19 +60,19 @@ set_target_properties(JSON PROPERTIES OUTPUT_NAME json)
 
 if(BUILD_EXAMPLES)
     add_executable(JSONSimpleWriter example/simplewriter.cpp)
-    target_link_libraries(JSONSimpleWriter JSON)
+    target_link_libraries(JSONSimpleWriter JSON Lexi)
     set_target_properties(JSONSimpleWriter PROPERTIES OUTPUT_NAME json_simplewriter)
 
     add_executable(JSONSimpleReader example/simplereader.cpp)
-    target_link_libraries(JSONSimpleReader JSON)
+    target_link_libraries(JSONSimpleReader JSON Lexi)
     set_target_properties(JSONSimpleReader PROPERTIES OUTPUT_NAME json_simplereader)
 
     add_executable(JSONRange example/range.cpp)
-    target_link_libraries(JSONRange JSON)
+    target_link_libraries(JSONRange JSON Lexi)
     set_target_properties(JSONRange PROPERTIES OUTPUT_NAME json_range)
 
     add_executable(JSONStl example/stl.cpp)
-    target_link_libraries(JSONStl JSON)
+    target_link_libraries(JSONStl JSON Lexi)
     set_target_properties(JSONStl PROPERTIES OUTPUT_NAME json_stl)
 endif()
 
@@ -94,6 +98,7 @@ if(BUILD_TESTS)
         gtest
         gtest_main
         JSON
+        Lexi
     )
     set_target_properties(JSON_TESTS PROPERTIES OUTPUT_NAME test)
 
@@ -114,10 +119,10 @@ if(BUILD_FUZZ AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     find_package(Threads)
 
     add_executable(JSONFuzzReader test/fuzz/reader.cpp)
-    target_link_libraries(JSONFuzzReader LLVMFuzzer JSON Threads::Threads)
+    target_link_libraries(JSONFuzzReader LLVMFuzzer JSON Lexi Threads::Threads)
     set_target_properties(JSONFuzzReader PROPERTIES OUTPUT_NAME json_fuzzreader)
 
     add_executable(JSONFuzzWriter test/fuzz/writer.cpp)
-    target_link_libraries(JSONFuzzWriter LLVMFuzzer JSON Threads::Threads)
+    target_link_libraries(JSONFuzzWriter LLVMFuzzer JSON Lexi Threads::Threads)
     set_target_properties(JSONFuzzWriter PROPERTIES OUTPUT_NAME json_fuzzwriter)
 endif()

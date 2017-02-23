@@ -50,12 +50,8 @@ template <typename T>
 constexpr bool is_char_v = is_char<T>::value;
 
 template <typename T>
-struct is_bool
-{
-    enum {
-        value = (is_same_v<bool, T> || is_same_v<const bool, T>)
-    };
-};
+struct is_bool: std::is_same<typename std::remove_cv<T>::type, bool>
+{};
 
 template <typename T>
 constexpr bool is_bool_v = is_bool<T>::value;

@@ -5,7 +5,7 @@
  *  \brief Write types to stream.
  */
 
-#include "json/detail/ieee754.hpp"
+#include "lexi/lexi.hpp"
 #include "json/detail/string.hpp"
 #include "json/detail/write.hpp"
 
@@ -33,11 +33,9 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const bool boolean)
 {
-    if (boolean) {
-        stream.write("true", 4);
-    } else {
-        stream.write("false", 5);
-    }
+    auto string = lexi::lexi(boolean);
+    stream.write(string.data(), string.size());
+
     return stream;
 }
 
@@ -97,7 +95,10 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const float number)
 {
-    return write(stream, static_cast<double>(number));
+    auto string = lexi::lexi(number);
+    stream.write(string.data(), string.size());
+
+    return stream;
 }
 
 
@@ -106,26 +107,8 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const double number)
 {
-    if (!isFinite(number)) {
-        // IEEE754 special numbers, technically not part of spec.
-        if (isNan(number)) {
-            stream.write("NaN", 3);
-        } else if (isInfinity(number)) {
-            stream.write("Infinity", 3);
-        } else {
-            stream.write("-Infinity", 4);
-        }
-    } else if (isZero(number)) {
-        if (isPositive(number)) {
-            stream.write("0.0", 3);
-        } else {
-            stream.write("-0.0", 4);
-        }
-    } else {
-        // TODO: enhance perfomance here
-        auto string = std::to_string(number);
-        stream.write(string.data(), std::min<size_t>(string.size(), 30));
-    }
+    auto string = lexi::lexi(number);
+    stream.write(string.data(), string.size());
 
     return stream;
 }
@@ -136,8 +119,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const int16_t number)
 {
-    // TODO: enhance perfomance here
-    auto string = std::to_string(number);
+    auto string = lexi::lexi(number);
     stream.write(string.data(), string.size());
 
     return stream;
@@ -149,8 +131,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const uint16_t number)
 {
-    // TODO: enhance perfomance here
-    auto string = std::to_string(number);
+    auto string = lexi::lexi(number);
     stream.write(string.data(), string.size());
 
     return stream;
@@ -162,8 +143,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const int32_t number)
 {
-    // TODO: enhance perfomance here
-    auto string = std::to_string(number);
+    auto string = lexi::lexi(number);
     stream.write(string.data(), string.size());
 
     return stream;
@@ -175,8 +155,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const uint32_t number)
 {
-    // TODO: enhance perfomance here
-    auto string = std::to_string(number);
+    auto string = lexi::lexi(number);
     stream.write(string.data(), string.size());
 
     return stream;
@@ -188,8 +167,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const int64_t number)
 {
-    // TODO: enhance perfomance here
-    auto string = std::to_string(number);
+    auto string = lexi::lexi(number);
     stream.write(string.data(), string.size());
 
     return stream;
@@ -201,8 +179,7 @@ std::ostream & write(std::ostream &stream,
 std::ostream & write(std::ostream &stream,
     const uint64_t number)
 {
-    // TODO: enhance perfomance here
-    auto string = std::to_string(number);
+    auto string = lexi::lexi(number);
     stream.write(string.data(), string.size());
 
     return stream;

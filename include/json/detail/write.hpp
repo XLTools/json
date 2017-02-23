@@ -169,7 +169,6 @@ std::ostream & writeValue(std::ostream &stream,
     return write(stream, t);
 }
 
-
 /** \brief Write value.
  */
 template <typename T>

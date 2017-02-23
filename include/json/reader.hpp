@@ -9,7 +9,6 @@
 
 #include "except.hpp"
 #include "view.hpp"
-#include "detail/extract.hpp"
 
 #include <array>
 #include <deque>

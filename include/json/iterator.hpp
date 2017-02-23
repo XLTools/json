@@ -8,8 +8,7 @@
 #pragma once
 
 #include "node.hpp"
-#include "detail/extract.hpp"
-#include "detail/wrapper.hpp"
+#include "lexi/lexi.hpp"
 
 #include <iterator>
 
@@ -148,8 +147,7 @@ public:
 template <typename T>
 KeyWrapper::operator T() const
 {
-    detail::Extract<T> extract;
-    return extract(data());
+    return lexi::lexi<T>(data());
 }
 
 
@@ -158,8 +156,7 @@ KeyWrapper::operator T() const
 template <typename T>
 ValueWrapper::operator T() const
 {
-    detail::Extract<T> extract;
-    return extract(data());
+    return lexi::lexi<T>(data());
 }
 
 }   /* json */

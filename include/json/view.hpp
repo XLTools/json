@@ -8,6 +8,7 @@
 #pragma once
 
 #include "iterator.hpp"
+#include "detail/type.hpp"
 
 #include <string>
 #include <utility>

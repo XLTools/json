@@ -62,6 +62,7 @@ Simply clone, configure with CMake, and build.
 
 ```bash
 git clone https://github.com/Alexhuszagh/json.git
+git submodule update --init
 cd json/build
 cmake .. -_DBUILD_TESTS=ON      # "-DBUILD_FUZZ=ON" for fuzzing with Clang
 make -j 5                       # "msbuild JSON.sln" for MSVC
@@ -69,7 +70,7 @@ make -j 5                       # "msbuild JSON.sln" for MSVC
 
 ## Testing
 
-It has been tested with a variety of JSON files, for compliance and accurate parsing, fully passing the [conformance tests](https://github.com/miloyip/nativejson-benchmark/tree/master/data/jsonchecker) and [roundtrip tests](https://github.com/miloyip/nativejson-benchmark/tree/master/data/roundtrip) from Milo Yip's JSON benchmarks.
+Json++ has been tested with a variety of JSON files, for compliance and accurate parsing, fully passing the [conformance tests](https://github.com/miloyip/nativejson-benchmark/tree/master/data/jsonchecker) and [roundtrip tests](https://github.com/miloyip/nativejson-benchmark/tree/master/data/roundtrip) from Milo Yip's JSON benchmarks.
 
 The core parser has also been extensively fuzzed (see [Fuzz Tests](/test/fuzz)), since bugs in JSON parsing can be used as attack vectors against web services.
 
