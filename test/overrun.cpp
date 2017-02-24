@@ -17,9 +17,26 @@ TEST(Overrun, SampleArray)
 {
     auto TEST_ARRAY = [](const std::string &data) {
         json::StringTextReader reader(data);
-        // make sure the loop isn't optimized
-        for (volatile auto value: reader.array());
+        reader.read();
+        for (volatile auto value: reader.array())
+            ;
+    };
+    auto TEST_OBJECT = [](const std::string &data) {
+        json::StringTextReader reader(data);
+        reader.read();
+        for (volatile auto value: reader.object())
+            ;
     };
 
-    TEST_ARRAY("{}");
+    // invalid
+    ASSERT_THROW(TEST_ARRAY("[]"), json::ParserError);
+    ASSERT_THROW(TEST_ARRAY("{}"), json::ParserError);
+    ASSERT_THROW(TEST_OBJECT("[]"), json::ParserError);
+    ASSERT_THROW(TEST_OBJECT("{}"), json::ParserError);
+
+    // potentially valid
+    ASSERT_THROW(TEST_ARRAY("{\"1\": {}}"), json::ParserError);
+    TEST_OBJECT("{\"1\": {}}");
+    TEST_ARRAY("{\"1\": []}");
+    ASSERT_THROW(TEST_OBJECT("{\"1\": []}"), json::ParserError);
 }

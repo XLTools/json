@@ -84,6 +84,7 @@ set(TEST_FILES
     test/benchmark.cpp
     test/checker.cpp
     test/data.cpp
+    test/overrun.cpp
     test/rfc7419.cpp
     test/reader.cpp
     test/writer.cpp

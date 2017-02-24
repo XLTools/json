@@ -89,11 +89,13 @@ ValueType ValueWrapper::type() const
 ArrayIterator::ArrayIterator(TextReader *reader):
     reader(reader)
 {
-    if (reader) {
+    if (reader && reader->isArray() && !reader->isEndNode()) {
         depth = reader->depth();
         if (reader->isStartNode()) {
             operator++();
         }
+    } else if (reader) {
+        throw ParserError("Expected array for iterator, got non-array node.");
     }
 }
 
@@ -187,11 +189,13 @@ void ArrayIterator::swap(ArrayIterator &other)
 ObjectIterator::ObjectIterator(TextReader *reader):
     reader(reader)
 {
-    if (reader) {
+    if (reader && reader->isObject() && !reader->isEndNode()) {
         depth = reader->depth();
-        if (!reader->hasValue()) {
+        if (!reader->isStartNode()) {
             operator++();
         }
+    } else if (reader) {
+        throw ParserError("Expected object for iterator, got non-object node.");
     }
 }
 
