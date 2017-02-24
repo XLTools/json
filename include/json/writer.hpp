@@ -154,10 +154,16 @@ public:
 template <typename T>
 void TextWriter::write(const T &t)
 {
-    JSON_ACCEPTS_VALUE();
-
-    writeValueDelimiter();
-    detail::write(*stream, t);
+    if (isObject()) {
+        if (intermediate) {
+            writeKey(t);
+        } else {
+            writeValue(t);
+        }
+    } else {
+        writeValueDelimiter();
+        detail::write(*stream, t);
+    }
 }
 
 
@@ -166,10 +172,16 @@ void TextWriter::write(const T &t)
 template <typename T>
 void TextWriter::write(T &&t)
 {
-    JSON_ACCEPTS_VALUE();
-
-    writeValueDelimiter();
-    detail::write(*stream, std::forward<T>(t));
+    if (isObject()) {
+        if (intermediate) {
+            writeKey(std::forward<T>(t));
+        } else {
+            writeValue(std::forward<T>(t));
+        }
+    } else {
+        writeValueDelimiter();
+        detail::write(*stream, std::forward<T>(t));
+    }
 }
 
 
