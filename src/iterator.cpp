@@ -262,6 +262,7 @@ ObjectIterator & ObjectIterator::operator++()
     if (reader->depth() >= depth && !reader->isEndNode()) {
         data = std::make_pair(KeyWrapper(reader), ValueWrapper(reader));
     } else {
+        printf("Nullying object iterator\n, %zu, %d, %d", reader->depth(), reader->hasKey(), reader->isEndNode());
         reader = nullptr;
         data = std::make_pair(KeyWrapper(nullptr), ValueWrapper(nullptr));
     }
