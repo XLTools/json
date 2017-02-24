@@ -191,7 +191,7 @@ ObjectIterator::ObjectIterator(TextReader *reader):
 {
     if (reader && reader->isObject() && !reader->isEndNode()) {
         depth = reader->depth();
-        if (!reader->isStartNode()) {
+        if (reader->isStartNode()) {
             operator++();
         }
     } else if (reader) {
