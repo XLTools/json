@@ -150,7 +150,7 @@ ArrayIterator & ArrayIterator::operator++()
     } while (reader->isValid() && reader->depth() > depth);
 
     // get value or nullify iterator
-    if (reader->depth() >= depth) {
+    if (reader->depth() >= depth && !reader->isEndNode()) {
         data = ValueWrapper(reader);
     } else {
         reader = nullptr;
@@ -248,7 +248,7 @@ ObjectIterator & ObjectIterator::operator++()
     } while (reader->isValid() && reader->depth() > depth);
 
     // get value or nullify iterator
-    if (reader->depth() >= depth) {
+    if (reader->depth() >= depth && !reader->isEndNode()) {
         data = std::make_pair(KeyWrapper(reader), ValueWrapper(reader));
     } else {
         reader = nullptr;
