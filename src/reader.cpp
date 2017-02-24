@@ -859,7 +859,7 @@ bool TextReader::isEndNode() const
  */
 bool TextReader::hasKey() const
 {
-    return !buffer_[0].empty();
+    return isObject() && !(isStartNode() || isEndNode());
 }
 
 
@@ -867,7 +867,11 @@ bool TextReader::hasKey() const
  */
 bool TextReader::hasValue() const
 {
-    return !buffer_[1].empty();
+    if (buffer_[1].empty()) {
+        return !(isStartNode() || isEndNode());
+    }
+
+    return true;
 }
 
 
