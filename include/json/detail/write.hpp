@@ -35,6 +35,21 @@ write(std::ostream &stream,
     return stream;
 }
 
+/** \brief Forward-declare array specialization.
+ */
+template <typename T>
+enable_if_t<is_array_v<T>, std::ostream&>
+write(std::ostream &stream,
+    const T &t);
+
+
+/** \brief Forward-declare object specialization.
+ */
+template <typename T>
+enable_if_t<is_object_v<T>, std::ostream&>
+write(std::ostream &stream,
+    const T &t);
+
 
 /** \brief Write quoted key from quoted value.
  */

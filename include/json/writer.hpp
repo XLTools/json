@@ -97,9 +97,13 @@ public:
     bool endArray();
 
     // WRITERS -- ARRAYS
-    template <typename T>
+    template <typename T, enable_if_t<!is_container_v<T>, T>* = nullptr>
     void write(const T &t);
-    template <typename T>
+    template <typename T, enable_if_t<!is_container_v<T>, T>* = nullptr>
+    void write(T &&t);
+    template <typename T, enable_if_t<is_container_v<T>, T>* = nullptr>
+    void write(const T &t);
+    template <typename T, enable_if_t<is_container_v<T>, T>* = nullptr>
     void write(T &&t);
 
     // WRITERS -- OBJECTS
@@ -151,14 +155,17 @@ public:
 
 /** \brief Write custom value to array.
  */
-template <typename T>
+template <
+    typename T,
+    enable_if_t<!is_container_v<T>, T>*
+>
 void TextWriter::write(const T &t)
 {
     if (isObject()) {
         if (intermediate) {
-            writeKey(t);
-        } else {
             writeValue(t);
+        } else {
+            writeKey(t);
         }
     } else {
         writeValueDelimiter();
@@ -167,21 +174,52 @@ void TextWriter::write(const T &t)
 }
 
 
-/** \brief Write custom value to array with perfect forwarding.
+/** \brief Write custom value with perfect forwarding.
  */
-template <typename T>
+template <
+    typename T,
+    enable_if_t<!is_container_v<T>, T>*
+>
 void TextWriter::write(T &&t)
 {
     if (isObject()) {
         if (intermediate) {
-            writeKey(std::forward<T>(t));
-        } else {
             writeValue(std::forward<T>(t));
+        } else {
+            writeKey(std::forward<T>(t));
         }
     } else {
         writeValueDelimiter();
         detail::write(*stream, std::forward<T>(t));
     }
+}
+
+
+/** \brief Write custom container.
+ */
+template <
+    typename T,
+    enable_if_t<is_container_v<T>, T>*
+>
+void TextWriter::write(const T &t)
+{
+    JSON_ACCEPTS_VALUE();
+    writeValueDelimiter();
+    detail::write(*stream, t);
+}
+
+
+/** \brief Write custom container with perfect forwarding.
+ */
+template <
+    typename T,
+    enable_if_t<is_container_v<T>, T>*
+>
+void TextWriter::write(T &&t)
+{
+    JSON_ACCEPTS_VALUE();
+    writeValueDelimiter();
+    detail::write(*stream, std::forward<T>(t));
 }
 
 

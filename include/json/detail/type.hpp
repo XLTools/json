@@ -212,6 +212,9 @@ constexpr bool is_array_v = is_array<Ts...>::value;
 template <typename... Ts>
 constexpr bool is_object_v = is_object<Ts...>::value;
 
+template <typename... Ts>
+constexpr bool is_container_v = is_array_v<Ts...> || is_object_v<Ts...>;
+
 }   /* detail */
 
 // TYPES
@@ -221,16 +224,6 @@ constexpr bool is_object_v = is_object<Ts...>::value;
 template <bool B, typename T = void>
 using enable_if_t = detail::enable_if_t<B, T>;
 
-
-//template <typename T, typename U>
-//constexpr bool is_same_v = std::is_same<T, U>::value;
-//is_char_v
-//is_bool_v
-//is_integer_v
-//is_float_v
-//is_cstr_v
-//is_std_string_v
-
 template <typename T>
 constexpr bool is_string_v = detail::is_string_v<T>;
 
@@ -239,5 +232,8 @@ constexpr bool is_array_v = detail::is_array_v<Ts...>;
 
 template <typename... Ts>
 constexpr bool is_object_v = detail::is_object_v<Ts...>;
+
+template <typename... Ts>
+constexpr bool is_container_v = detail::is_container_v<Ts...>;
 
 }   /* json */
