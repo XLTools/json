@@ -18,7 +18,7 @@ namespace json
  */
 const std::string & KeyWrapper::data() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "KeyWrapper::data() : reader is null.");
     return reader->buffer_[0];
 }
 
@@ -34,7 +34,7 @@ KeyWrapper::KeyWrapper(const TextReader *reader):
  */
 const std::string & ValueWrapper::data() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "ValueWrapper::data() : reader is null.");
     return reader->buffer_[1];
 }
 
@@ -50,7 +50,7 @@ ValueWrapper::ValueWrapper(const TextReader *reader):
  */
 bool ValueWrapper::isNull() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "ValueWrapper::isNull() : reader is null.");
     return reader->isNull();
 }
 
@@ -59,7 +59,7 @@ bool ValueWrapper::isNull() const
  */
 bool ValueWrapper::isBool() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "ValueWrapper::isBool() : reader is null.");
     return reader->isBool();
 }
 
@@ -68,7 +68,7 @@ bool ValueWrapper::isBool() const
  */
 bool ValueWrapper::isNumber() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "ValueWrapper::isNumber() : reader is null.");
     return reader->isNumber();
 }
 
@@ -77,7 +77,7 @@ bool ValueWrapper::isNumber() const
  */
 bool ValueWrapper::isString() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "ValueWrapper::isString() : reader is null.");
     return reader->isString();
 }
 
@@ -86,7 +86,7 @@ bool ValueWrapper::isString() const
  */
 ValueType ValueWrapper::type() const
 {
-    JSON_ASSERT(reader);
+    JSON_ASSERT(reader, "ValueWrapper::type() : reader is null.");
     return reader->type();
 }
 

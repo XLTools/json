@@ -49,14 +49,11 @@ struct NodeError: Exception
 // MACROS
 // ------
 
-
-#define JSON_STRINGIFY(x) #x
-
 /** \brief Throw exception if false.
  */
 #define JSON_ASSERT(x, y)                                               \
     if (!(x)) {                                                         \
-        throw ParserError(JSON_STRINGIFY(y));                           \
+        throw ParserError(y);                                           \
     }
 
 
