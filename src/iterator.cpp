@@ -198,7 +198,6 @@ void ArrayIterator::swap(ArrayIterator &other)
 ObjectIterator::ObjectIterator(TextReader *reader):
     reader(reader)
 {
-    printf("Constructing new iterator\n");
     if (reader && reader->isObject() && !reader->isEndNode()) {
         depth = reader->depth();
         if (reader->isStartNode()) {
