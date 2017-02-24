@@ -151,12 +151,14 @@ ArrayIterator & ArrayIterator::operator++()
     // seek next node
     do {
         reader->read();
-        if (reader->depth() == depth && !reader->isStartNode()) {
+        if (reader->isEndNode()) {
+            continue;
+        } else if (reader->depth() == depth && !reader->isStartNode()) {
             break;
         } else if (reader->depth() == depth+1 && reader->isStartNode()) {
             break;
         }
-    } while (reader->isValid() && reader->depth() > depth);
+    } while (reader->isValid() && reader->depth() >= depth);
 
     // get value or nullify iterator
     if (reader->depth() >= depth && !reader->isEndNode()) {
@@ -196,6 +198,7 @@ void ArrayIterator::swap(ArrayIterator &other)
 ObjectIterator::ObjectIterator(TextReader *reader):
     reader(reader)
 {
+    printf("Constructing new iterator\n");
     if (reader && reader->isObject() && !reader->isEndNode()) {
         depth = reader->depth();
         if (reader->isStartNode()) {
@@ -251,18 +254,19 @@ ObjectIterator & ObjectIterator::operator++()
     // seek next node
     do {
         reader->read();
-        if (reader->depth() == depth && !reader->isStartNode()) {
+        if (reader->isEndNode()) {
+            continue;
+        } else if (reader->depth() == depth && !reader->isStartNode()) {
             break;
         } else if (reader->depth() == depth+1 && reader->isStartNode()) {
             break;
         }
-    } while (reader->isValid() && reader->depth() > depth);
+    } while (reader->isValid() && reader->depth() >= depth);
 
     // get value or nullify iterator
-    if (reader->depth() >= depth && !reader->isEndNode()) {
+    if (reader->depth() >= depth) {
         data = std::make_pair(KeyWrapper(reader), ValueWrapper(reader));
     } else {
-        printf("Nullying object iterator\n, %zu, %d, %d", reader->depth(), reader->hasKey(), reader->isEndNode());
         reader = nullptr;
         data = std::make_pair(KeyWrapper(nullptr), ValueWrapper(nullptr));
     }
