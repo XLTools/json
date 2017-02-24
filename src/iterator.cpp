@@ -18,6 +18,7 @@ namespace json
  */
 const std::string & KeyWrapper::data() const
 {
+    JSON_ASSERT(reader);
     return reader->buffer_[0];
 }
 
@@ -33,6 +34,7 @@ KeyWrapper::KeyWrapper(const TextReader *reader):
  */
 const std::string & ValueWrapper::data() const
 {
+    JSON_ASSERT(reader);
     return reader->buffer_[1];
 }
 
@@ -48,6 +50,7 @@ ValueWrapper::ValueWrapper(const TextReader *reader):
  */
 bool ValueWrapper::isNull() const
 {
+    JSON_ASSERT(reader);
     return reader->isNull();
 }
 
@@ -56,6 +59,7 @@ bool ValueWrapper::isNull() const
  */
 bool ValueWrapper::isBool() const
 {
+    JSON_ASSERT(reader);
     return reader->isBool();
 }
 
@@ -64,6 +68,7 @@ bool ValueWrapper::isBool() const
  */
 bool ValueWrapper::isNumber() const
 {
+    JSON_ASSERT(reader);
     return reader->isNumber();
 }
 
@@ -72,6 +77,7 @@ bool ValueWrapper::isNumber() const
  */
 bool ValueWrapper::isString() const
 {
+    JSON_ASSERT(reader);
     return reader->isString();
 }
 
@@ -80,6 +86,7 @@ bool ValueWrapper::isString() const
  */
 ValueType ValueWrapper::type() const
 {
+    JSON_ASSERT(reader);
     return reader->type();
 }
 
