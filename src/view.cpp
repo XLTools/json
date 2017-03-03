@@ -14,46 +14,34 @@ namespace json
 // -------
 
 
-/** \brief Initializer list constructor.
- */
 ArrayView::ArrayView(TextReader &reader):
     reader(&reader)
 {}
 
 
-/** \brief Get iterator at beginning of array.
- */
 ArrayIterator ArrayView::begin()
 {
     return ArrayIterator(reader);
 }
 
 
-/** \brief Get iterator at null end of array.
- */
 ArrayIterator ArrayView::end()
 {
     return ArrayIterator();
 }
 
 
-/** \brief Initializer list constructor.
- */
 ObjectView::ObjectView(TextReader &reader):
     reader(&reader)
 {}
 
 
-/** \brief Get iterator at beginning of object.
- */
 ObjectIterator ObjectView::begin()
 {
     return ObjectIterator(reader);
 }
 
 
-/** \brief Get iterator at null end of object.
- */
 ObjectIterator ObjectView::end()
 {
     return ObjectIterator();

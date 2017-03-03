@@ -40,9 +40,9 @@ TEST(TextWriter, NodelessInt)
 TEST(TextWriter, Int)
 {
     json::StringTextWriter writer;
-    writer.startArray();
+    writer.start_array();
     writer.write(1);
-    writer.endArray();
+    writer.end_array();
     EXPECT_EQ(writer.str(), "[1]");
 }
 
@@ -52,10 +52,10 @@ TEST(TextWriter, IntList)
     std::vector<int> v = {1};
 
     json::StringTextWriter writer;
-    writer.startArray();
+    writer.start_array();
     writer.write(1);
     writer.write(v);
-    writer.endArray();
+    writer.end_array();
     EXPECT_EQ(writer.str(), "[1,[1]]");
 }
 
@@ -70,11 +70,11 @@ TEST(TextWriter, IntListDict)
     };
 
     json::StringTextWriter writer;
-    writer.startArray();
+    writer.start_array();
     writer.write(1);
     writer.write(v);
     writer.write(m);
-    writer.endArray();
+    writer.end_array();
     EXPECT_EQ(writer.str(), "[1,[1],{\"1\":2,\"3\":4,\"5\":6}]");
 }
 
@@ -82,11 +82,11 @@ TEST(TextWriter, IntListDict)
 TEST(TextWriter, NestedKeys)
 {
     json::StringTextWriter writer;
-    writer.startObject();
-    writer.writeKey(1);
-    writer.startObject();
-    writer.endObject();
-    writer.endObject();
+    writer.start_object();
+    writer.write_key(1);
+    writer.start_object();
+    writer.end_object();
+    writer.end_object();
     EXPECT_EQ(writer.str(), "{\"1\":{}}");
 }
 
@@ -94,12 +94,12 @@ TEST(TextWriter, NestedKeys)
 TEST(TextWriter, SeparatedKeyValue)
 {
     json::StringTextWriter writer;
-    writer.startObject();
-    writer.writeKey(1);
-    writer.writeValue(2);
-    writer.writeKey(3);
-    writer.writeValue(4);
-    writer.endObject();
+    writer.start_object();
+    writer.write_key(1);
+    writer.write_value(2);
+    writer.write_key(3);
+    writer.write_value(4);
+    writer.end_object();
     EXPECT_EQ(writer.str(), "{\"1\":2,\"3\":4}");
 }
 
@@ -107,24 +107,24 @@ TEST(TextWriter, SeparatedKeyValue)
 TEST(TextWriter, ImproperClose)
 {
     json::StringTextWriter writer;
-    writer.startObject();
-    writer.writeKey(1);
-    ASSERT_THROW(writer.endObject(), json::NodeError);
+    writer.start_object();
+    writer.write_key(1);
+    ASSERT_THROW(writer.end_object(), json::NodeError);
 }
 
 
 TEST(TextWriter, ImproperKey)
 {
     json::StringTextWriter writer;
-    writer.startArray();
-    ASSERT_THROW(writer.writeKey(1), json::NodeError);
+    writer.start_array();
+    ASSERT_THROW(writer.write_key(1), json::NodeError);
 }
 
 
 TEST(TextWriter, DuplicateKeys)
 {
     json::StringTextWriter writer;
-    writer.startObject();
-    writer.writeKey(1);
-    ASSERT_THROW(writer.writeKey(1), json::NodeError);
+    writer.start_object();
+    writer.write_key(1);
+    ASSERT_THROW(writer.write_key(1), json::NodeError);
 }

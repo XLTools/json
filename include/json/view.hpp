@@ -41,10 +41,7 @@ public:
     iterator begin();
     iterator end();
 
-    template<
-        typename T,
-        typename = enable_if_t<is_array_v<T>, T>
-    >
+    template<typename T, typename = enable_if_t<is_array_v<T>, T>>
     explicit operator T();
 };
 
@@ -70,10 +67,7 @@ public:
     iterator begin();
     iterator end();
 
-    template<
-        typename T,
-        typename = enable_if_t<is_object_v<T>, T>
-    >
+    template<typename T, typename = enable_if_t<is_object_v<T>, T>>
     explicit operator T();
 };
 
@@ -82,8 +76,6 @@ public:
 // --------------
 
 
-/** \brief Convert array view to STL container.
- */
 template <typename T, typename>
 ArrayView::operator T()
 {
@@ -98,8 +90,6 @@ ArrayView::operator T()
 }
 
 
-/** \brief Convert object view to STL container.
- */
 template <typename T, typename>
 ObjectView::operator T()
 {

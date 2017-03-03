@@ -26,11 +26,11 @@ int main(void)
     // WRITER
     // ------
     json::StringTextWriter writer;
-    writer.startObject();
+    writer.start_object();
     for (const auto &pair: map) {
         writer.write(pair.first, pair.second);
     }
-    writer.endObject();
+    writer.end_object();
 
     // write {"1":2} to stdout
     std::cout << writer.str() << std::endl;

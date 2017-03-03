@@ -17,9 +17,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     std::string string(reinterpret_cast<const char*>(Data), Size);
     try {
         json::StringTextWriter writer;
-        writer.startArray();
+        writer.start_array();
         writer.write(string);
-        writer.endArray();
+        writer.end_array();
     } catch (json::Exception) {
         // catching custom exceptions is fine.
     }

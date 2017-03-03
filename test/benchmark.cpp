@@ -24,7 +24,7 @@ TEST(Jeopardy, Benchmark)
     json::FileTextReader reader("test/data/jeopardy.json");
     do {
         ASSERT_NO_THROW(reader.read());
-    } while (reader.isValid());
+    } while (reader.is_valid());
     auto t2 = Clock::now();
 
     std::cout << "Delta t2-t1: "

@@ -14,15 +14,11 @@ namespace json
 // ----------
 
 
-/** \brief Initializer list constructor.
- */
 Exception::Exception(const std::string &message):
     message(message)
 {}
 
 
-/** \brief Print error message.
- */
 const char * Exception::what() const noexcept
 {
     return message.data();

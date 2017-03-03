@@ -17,7 +17,7 @@ int main(void)
     json::StringTextWriter writer;
 
     // create a root map
-    writer.startObject();
+    writer.start_object();
     for (size_t i = 0; i < 5; ++i) {
         writer.write(i, static_cast<size_t>(std::pow(i, 2)));
     }
@@ -25,7 +25,7 @@ int main(void)
     std::vector<std::string> v = {"1", "2", "3", "4", "5"};
     writer.write("array", v);
 
-    writer.endObject();
+    writer.end_object();
 
     std::cout << "------------------------------------------------------------------\n"
               << "                        Expected output:                          \n"

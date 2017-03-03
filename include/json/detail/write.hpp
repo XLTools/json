@@ -22,8 +22,6 @@ namespace detail
 // ---------
 
 
-/** \brief Write data to stream.
- */
 template <typename T>
 enable_if_t<!is_array_v<T> && !is_object_v<T>, std::ostream&>
 write(std::ostream &stream,
@@ -35,27 +33,21 @@ write(std::ostream &stream,
     return stream;
 }
 
-/** \brief Forward-declare array specialization.
- */
 template <typename T>
 enable_if_t<is_array_v<T>, std::ostream&>
 write(std::ostream &stream,
     const T &t);
 
 
-/** \brief Forward-declare object specialization.
- */
 template <typename T>
 enable_if_t<is_object_v<T>, std::ostream&>
 write(std::ostream &stream,
     const T &t);
 
 
-/** \brief Write quoted key from quoted value.
- */
 template <typename T>
 enable_if_t<lexi::is_string_v<T>, std::ostream&>
-writeKey(std::ostream &stream,
+write_key(std::ostream &stream,
     const T &t)
 {
     auto string = lexi::jsonify(t);
@@ -65,11 +57,9 @@ writeKey(std::ostream &stream,
 }
 
 
-/** \brief Write quoted key from unquoted value.
- */
 template <typename T>
 enable_if_t<!lexi::is_string_v<T>, std::ostream&>
-writeKey(std::ostream &stream,
+write_key(std::ostream &stream,
     const T &t)
 {
     auto string = "\"" + lexi::jsonify(t) + "\"";
@@ -79,19 +69,15 @@ writeKey(std::ostream &stream,
 }
 
 
-/** \brief Write value.
- */
 template <typename T>
-std::ostream & writeValue(std::ostream &stream,
+std::ostream & write_value(std::ostream &stream,
     const T &t)
 {
     return write(stream, t);
 }
 
-/** \brief Write value.
- */
 template <typename T>
-std::ostream & writeValue(std::ostream &stream,
+std::ostream & write_value(std::ostream &stream,
     T &&t)
 {
     return write(stream, std::forward<T>(t));
@@ -99,8 +85,6 @@ std::ostream & writeValue(std::ostream &stream,
 
 // CONTAINERS
 
-/** \brief Write array.
- */
 template <typename T>
 enable_if_t<is_array_v<T>, std::ostream&>
 write(std::ostream &stream,
@@ -122,8 +106,6 @@ write(std::ostream &stream,
 }
 
 
-/** \brief Write array.
- */
 template <typename T>
 enable_if_t<is_object_v<T>, std::ostream&>
 write(std::ostream &stream,
@@ -137,9 +119,9 @@ write(std::ostream &stream,
         } else {
             first = false;
         }
-        writeKey(stream, item.first);
+        write_key(stream, item.first);
         stream.put(':');
-        writeValue(stream, item.second);
+        write_value(stream, item.second);
     }
     stream.put('}');
 

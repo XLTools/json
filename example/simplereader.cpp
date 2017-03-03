@@ -17,19 +17,19 @@ int main(void)
 
     do {
         reader.read();
-        if (reader.hasKey() && reader.hasValue()) {
+        if (reader.has_key() && reader.has_value()) {
             std::cout << "Have key-value pair of {\"" << reader.key()
                       << "\" : \"" << reader.value() << "\"} at a depth of "
                       << reader.depth() << "\n";
-        } else if (reader.hasKey()) {
+        } else if (reader.has_key()) {
             std::cout << "Initializing child array with key \""
                       << reader.key() << "\" at a depth of "
                       << reader.depth() << "\n";
-        } else if (reader.hasValue()) {
+        } else if (reader.has_value()) {
             std::cout << "Reading array value of \"" << reader.value()
                       << "\" at a depth of " << reader.depth() << "\n";
         }
-    } while (reader.isValid());
+    } while (reader.is_valid());
 
     return 0;
 }

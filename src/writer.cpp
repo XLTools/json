@@ -30,9 +30,9 @@ std::array<std::string, 2> NEWLINE = {"", "\n"};
 // -------
 
 
-/** \brief Check if node type matches current node.
+/** \brief Check if argument node type matches current node type.
  */
-void TextWriter::checkNode(const NodeType type) const
+void TextWriter::check_node(const NodeType type) const
 {
     if (node.empty() || node.back() != type) {
         throw NodeError("NodeType does not match writer");
@@ -40,9 +40,7 @@ void TextWriter::checkNode(const NodeType type) const
 }
 
 
-/** \brief Write value delimiter to start new node.
- */
-void TextWriter::writeValueDelimiter()
+void TextWriter::write_value_delimiter()
 {
     if (offset.empty()) {
         return;
@@ -53,60 +51,46 @@ void TextWriter::writeValueDelimiter()
 }
 
 
-/** \brief Write key delimiter to allow key-value pairs.
- */
-void TextWriter::writeKeyDelimiter()
+void TextWriter::write_key_delimiter()
 {
     stream->put(KEY_DELIMITER);
 }
 
 
-/** \brief Open JSON text writer.
- */
 void TextWriter::open(std::ostream &stream)
 {
     this->stream = &stream;
 }
 
 
-/** \brief Initializer list constructor.
- */
 TextWriter::TextWriter(std::ostream &stream)
 {
     open(stream);
 }
 
 
-/** \brief Get depth of current reader.
- */
 size_t TextWriter::depth() const
 {
     return node.size();
 }
 
 
-/** \brief Check if stream is bad.
- */
-bool TextWriter::isBad() const
+bool TextWriter::is_bad() const
 {
     return stream->bad();
 }
 
 
-/** \brief Check if the reader is valid.
- *
- *  \warning Initialized streams are invalid until `startArray()` or
- *  `startObject()` has been called.
+/** \warning Initialized streams are invalid until `start_array()` or
+ *  `start_object()` has been called.
  */
-bool TextWriter::isValid() const
+bool TextWriter::is_valid() const
 {
-    return !node.empty() && !isBad();
+    return !node.empty() && !is_bad();
 }
 
 
-/** \brief Check if current node is array.
- */
-bool TextWriter::isArray() const
+bool TextWriter::is_array() const
 {
     if (node.empty()) {
         return false;
@@ -115,9 +99,7 @@ bool TextWriter::isArray() const
 }
 
 
-/** \brief Check if current node is object.
- */
-bool TextWriter::isObject() const
+bool TextWriter::is_object() const
 {
     if (node.empty()) {
         return false;
@@ -126,14 +108,12 @@ bool TextWriter::isObject() const
 }
 
 
-/** \brief Initialize an object element.
- */
-bool TextWriter::startObject()
+bool TextWriter::start_object()
 {
     JSON_ACCEPTS_VALUE();
     // don't write a value delimiter if a key has been written
     if (!intermediate) {
-        writeValueDelimiter();
+        write_value_delimiter();
     } else {
         intermediate = false;
     }
@@ -145,13 +125,11 @@ bool TextWriter::startObject()
 }
 
 
-/** \brief Initialize an object element.
- */
-bool TextWriter::startObject(const std::string &key)
+bool TextWriter::start_object(const std::string &key)
 {
     JSON_ACCEPTS_KEY();
 
-    writeValueDelimiter();
+    write_value_delimiter();
     stream->write(key.data(), key.size());
     stream->put(KEY_DELIMITER);
     stream->put(START_OBJECT);
@@ -162,9 +140,7 @@ bool TextWriter::startObject(const std::string &key)
 }
 
 
-/** \brief End an object element.
- */
-bool TextWriter::endObject()
+bool TextWriter::end_object()
 {
     JSON_ACCEPTS_KEY();
 
@@ -179,14 +155,12 @@ bool TextWriter::endObject()
 }
 
 
-/** \brief Initialize an array element.
- */
-bool TextWriter::startArray()
+bool TextWriter::start_array()
 {
     JSON_ACCEPTS_VALUE();
     // don't write a value delimiter if a key has been written
     if (!intermediate) {
-        writeValueDelimiter();
+        write_value_delimiter();
     } else {
         intermediate = false;
     }
@@ -198,13 +172,11 @@ bool TextWriter::startArray()
 }
 
 
-/** \brief Initialize an array element.
- */
-bool TextWriter::startArray(const std::string &key)
+bool TextWriter::start_array(const std::string &key)
 {
     JSON_ACCEPTS_KEY();
 
-    writeValueDelimiter();
+    write_value_delimiter();
     stream->write(key.data(), key.size());
     stream->put(KEY_DELIMITER);
     stream->put(START_ARRAY);
@@ -215,9 +187,7 @@ bool TextWriter::startArray(const std::string &key)
 }
 
 
-/** \brief End an array element.
- */
-bool TextWriter::endArray()
+bool TextWriter::end_array()
 {
     JSON_CHECK_ARRAY();
 
@@ -232,8 +202,6 @@ bool TextWriter::endArray()
 }
 
 
-/** \brief Initialize from path.
- */
 FileTextWriter::FileTextWriter(const std::string &path):
     fstream(path, std::ios::out | std::ios::binary | std::ios::trunc)
 {
@@ -241,8 +209,6 @@ FileTextWriter::FileTextWriter(const std::string &path):
 }
 
 
-/** \brief Initialize from data.
- */
 StringTextWriter::StringTextWriter():
     sstream(std::ios::out | std::ios::binary)
 {
@@ -250,12 +216,9 @@ StringTextWriter::StringTextWriter():
 }
 
 
-/** \brief Get string from stream.
- */
 std::string StringTextWriter::str() const
 {
     return sstream.str();
 }
-
 
 }   /* json */

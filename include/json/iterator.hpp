@@ -74,10 +74,10 @@ public:
 
     ValueWrapper(const TextReader *reader);
 
-    bool isNull() const;
-    bool isBool() const;
-    bool isNumber() const;
-    bool isString() const;
+    bool is_null() const;
+    bool is_bool() const;
+    bool is_number() const;
+    bool is_string() const;
     ValueType type() const;
 
     template <typename T>
@@ -143,8 +143,6 @@ public:
 // --------------
 
 
-/** \brief Custom type conversion operation.
- */
 template <typename T>
 KeyWrapper::operator T() const
 {
@@ -152,8 +150,6 @@ KeyWrapper::operator T() const
 }
 
 
-/** \brief Custom type conversion operation.
- */
 template <typename T>
 ValueWrapper::operator T() const
 {

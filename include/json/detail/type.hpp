@@ -32,6 +32,12 @@ using enable_if_t = typename std::enable_if<B, T>::type;
 template <typename T>
 using decay_t = typename std::decay<T>::type;
 
+template <typename T>
+using remove_cv = std::remove_cv<T>;
+
+template <typename T>
+using remove_cv_t = typename std::remove_cv<T>::type;
+
 template <typename T, typename U>
 constexpr bool is_same_v = std::is_same<T, U>::value;
 
@@ -39,15 +45,15 @@ constexpr bool is_same_v = std::is_same<T, U>::value;
 // ------------
 
 template <typename T>
-struct is_char
-{
-    enum {
-        value = (is_same_v<char, T> || is_same_v<const char, T> || is_same_v<unsigned char, T> || is_same_v<const unsigned char, T>)
-    };
-};
+struct is_signed_char: std::is_same<char, remove_cv_t<T>>
+{};
 
 template <typename T>
-constexpr bool is_char_v = is_char<T>::value;
+struct is_unsigned_char: std::is_same<char, remove_cv_t<T>>
+{};
+
+template <typename T>
+constexpr bool is_char_v = is_signed_char<T>::value || is_unsigned_char<T>::value;
 
 template <typename T>
 struct is_bool: std::is_same<typename std::remove_cv<T>::type, bool>
@@ -57,15 +63,7 @@ template <typename T>
 constexpr bool is_bool_v = is_bool<T>::value;
 
 template <typename T>
-struct is_integer
-{
-    enum {
-        value = (std::numeric_limits<T>::is_integer && !is_bool_v<T> && !is_char_v<T>)
-    };
-};
-
-template <typename T>
-constexpr bool is_integer_v = is_integer<T>::value;
+constexpr bool is_integer_v = std::numeric_limits<T>::is_integer && !is_bool_v<T> && !is_char_v<T>;
 
 template <typename T>
 struct is_float: std::is_floating_point<T>
@@ -75,12 +73,13 @@ template <typename T>
 constexpr bool is_float_v = is_float<T>::value;
 
 template <typename T>
-struct is_cstr: std::integral_constant<
-        bool,
-        is_same_v<char const *, decay_t<T>> ||
-        is_same_v<char *, decay_t<T>>
-    >
-{};
+using is_string_literal = std::is_same<char*, remove_cv_t<decay_t<T>>>;
+
+template <typename T>
+constexpr bool is_string_literal_v = is_string_literal<T>::value;
+
+template <typename T>
+using is_cstr = std::is_same<const char*, remove_cv_t<decay_t<T>>>;
 
 template <typename T>
 constexpr bool is_cstr_v = is_cstr<T>::value;
@@ -93,7 +92,7 @@ template <typename T>
 constexpr bool is_std_string_v = is_std_string<T>::value;
 
 template <typename T>
-struct is_string: std::integral_constant<bool, is_cstr_v<T> || is_std_string_v<T>>
+struct is_string: std::integral_constant<bool, is_cstr_v<T> || is_std_string_v<T> || is_string_literal_v<T>>
 {};
 
 template <typename T>

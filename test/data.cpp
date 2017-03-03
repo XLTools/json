@@ -28,7 +28,7 @@ TEST(JsonOrg, Sections)
         json::FileTextReader reader(item);
         do {
             ASSERT_NO_THROW(reader.read());
-        } while (reader.isValid());
+        } while (reader.is_valid());
     }
 }
 
@@ -42,7 +42,7 @@ TEST(TestSuite, SampleJson)
         if (reader.depth() == 1) {
             ++counter;
         }
-    } while (reader.isValid());
+    } while (reader.is_valid());
     EXPECT_EQ(counter, 3);
 }
 
@@ -88,6 +88,6 @@ TEST(Roundtrip, Sections)
         json::FileTextReader reader(item);
         do {
             ASSERT_NO_THROW(reader.read());
-        } while (reader.isValid());
+        } while (reader.is_valid());
     }
 }

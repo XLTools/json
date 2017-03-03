@@ -27,7 +27,7 @@ TEST(JsonChecker, Pass)
         json::FileTextReader reader(item);
         do {
             ASSERT_NO_THROW(reader.read());
-        } while (reader.isValid());
+        } while (reader.is_valid());
     }
 }
 
@@ -72,7 +72,7 @@ TEST(JsonChecker, Fail)
         json::FileTextReader reader(path);
         do {
             reader.read();
-        } while (reader.isValid());
+        } while (reader.is_valid());
     };
 
     for (const auto &item: items) {

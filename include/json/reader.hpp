@@ -37,24 +37,24 @@ protected:
     ValueType type_;
 
     // NODES
-    void startObject();
-    void endObject();
-    void startArray();
-    void endArray();
+    void start_object();
+    void end_object();
+    void start_array();
+    void end_array();
 
     // ELEMENTS
     void increment();
 
     // PARSERS -- SPECIFIC
-    void parseKey();
-    void parseValue();
-    void parsePair();
-    void parseArray();
-    void parseObject();
+    void parse_key();
+    void parse_value();
+    void parse_pair();
+    void parse_array();
+    void parse_object();
 
     // PARSERS -- GENERIC
-    void parseStart();
-    void parseNode();
+    void parse_start();
+    void parse_node();
 
     TextReaderImpl() = default;
     void open(std::istream &stream);
@@ -62,7 +62,6 @@ protected:
 public:
     TextReaderImpl(std::istream &stream);
 };
-
 
 }   /* detail */
 
@@ -90,20 +89,19 @@ public:
 
     // DATA
     size_t depth() const;
-    bool isEof() const;
-    bool isBad() const;
-    bool isValid() const;
-    bool isEmpty() const;
-    bool isNull() const;
-    bool isBool() const;
-    bool isNumber() const;
-    bool isString() const;
-    bool isArray() const;
-    bool isObject() const;
-    bool isStartNode() const;
-    bool isEndNode() const;
-    bool hasKey() const;
-    bool hasValue() const;
+    bool is_eof() const;
+    bool is_bad() const;
+    bool is_valid() const;
+    bool is_null() const;
+    bool is_bool() const;
+    bool is_number() const;
+    bool is_string() const;
+    bool is_array() const;
+    bool is_object() const;
+    bool is_start_node() const;
+    bool is_end_node() const;
+    bool has_key() const;
+    bool has_value() const;
     ValueType type() const;
 
     // PROCESSING
@@ -154,8 +152,6 @@ public:
 // --------------
 
 
-/** \brief Get key from data.
- */
 template <typename T>
 T TextReader::key() const
 {
@@ -163,8 +159,6 @@ T TextReader::key() const
 }
 
 
-/** \brief Get value from data.
- */
 template <typename T>
 T TextReader::value() const
 {

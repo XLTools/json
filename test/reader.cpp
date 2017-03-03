@@ -30,7 +30,7 @@ TEST(TextReader, ReadInt)
     reader.read();
     EXPECT_EQ(reader.depth(), 0);
     EXPECT_EQ(reader.type(), json::ValueType::ARRAY_END);
-    EXPECT_FALSE(reader.isValid());
+    EXPECT_FALSE(reader.is_valid());
 }
 
 

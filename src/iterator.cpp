@@ -14,8 +14,6 @@ namespace json
 // -------
 
 
-/** \brief Access underlying data.
- */
 const std::string & KeyWrapper::data() const
 {
     JSON_ASSERT(reader, "KeyWrapper::data() : reader is null.");
@@ -23,15 +21,11 @@ const std::string & KeyWrapper::data() const
 }
 
 
-/** \brief Initializer list constructor.
- */
 KeyWrapper::KeyWrapper(const TextReader *reader):
     reader(reader)
 {}
 
 
-/** \brief Access underlying data.
- */
 const std::string & ValueWrapper::data() const
 {
     JSON_ASSERT(reader, "ValueWrapper::data() : reader is null.");
@@ -39,51 +33,39 @@ const std::string & ValueWrapper::data() const
 }
 
 
-/** \brief Initializer list constructor.
- */
 ValueWrapper::ValueWrapper(const TextReader *reader):
     reader(reader)
 {}
 
 
-/** \brief Check if current value is null.
- */
-bool ValueWrapper::isNull() const
+bool ValueWrapper::is_null() const
 {
-    JSON_ASSERT(reader, "ValueWrapper::isNull() : reader is null.");
-    return reader->isNull();
+    JSON_ASSERT(reader, "ValueWrapper::is_null() : reader is null.");
+    return reader->is_null();
 }
 
 
-/** \brief Check if current value is bool.
- */
-bool ValueWrapper::isBool() const
+bool ValueWrapper::is_bool() const
 {
-    JSON_ASSERT(reader, "ValueWrapper::isBool() : reader is null.");
-    return reader->isBool();
+    JSON_ASSERT(reader, "ValueWrapper::is_bool() : reader is null.");
+    return reader->is_bool();
 }
 
 
-/** \brief Check if current value is a number.
- */
-bool ValueWrapper::isNumber() const
+bool ValueWrapper::is_number() const
 {
-    JSON_ASSERT(reader, "ValueWrapper::isNumber() : reader is null.");
-    return reader->isNumber();
+    JSON_ASSERT(reader, "ValueWrapper::is_number() : reader is null.");
+    return reader->is_number();
 }
 
 
-/** \brief Check if current value is string.
- */
-bool ValueWrapper::isString() const
+bool ValueWrapper::is_string() const
 {
-    JSON_ASSERT(reader, "ValueWrapper::isString() : reader is null.");
-    return reader->isString();
+    JSON_ASSERT(reader, "ValueWrapper::is_string() : reader is null.");
+    return reader->is_string();
 }
 
 
-/** \brief Get underlying value type.
- */
 ValueType ValueWrapper::type() const
 {
     JSON_ASSERT(reader, "ValueWrapper::type() : reader is null.");
@@ -91,14 +73,12 @@ ValueType ValueWrapper::type() const
 }
 
 
-/** \brief Initializer list constructor.
- */
 ArrayIterator::ArrayIterator(TextReader *reader):
     reader(reader)
 {
-    if (reader && reader->isArray() && !reader->isEndNode()) {
+    if (reader && reader->is_array() && !reader->is_end_node()) {
         depth = reader->depth();
-        if (reader->isStartNode()) {
+        if (reader->is_start_node()) {
             operator++();
         }
     } else if (reader) {
@@ -107,43 +87,33 @@ ArrayIterator::ArrayIterator(TextReader *reader):
 }
 
 
-/** \brief Equality operator.
- */
 bool ArrayIterator::operator==(const ArrayIterator &other) const
 {
     return reader == other.reader;
 }
 
 
-/** \brief Inequality operator.
- */
 bool ArrayIterator::operator!=(const ArrayIterator &other) const
 {
     return !operator==(other);
 }
 
 
-/** \brief Dereference operator.
- */
 ArrayData & ArrayIterator::operator*()
 {
     return data;
 }
 
 
-/** \brief Dereference operator.
- */
 ArrayData * ArrayIterator::operator->()
 {
     return &data;
 }
 
 
-/** \brief Pre-increment iterator.
- */
 ArrayIterator & ArrayIterator::operator++()
 {
-    if (!reader || !reader->isValid()) {
+    if (!reader || !reader->is_valid()) {
         reader = nullptr;
         return *this;
     }
@@ -151,17 +121,17 @@ ArrayIterator & ArrayIterator::operator++()
     // seek next node
     do {
         reader->read();
-        if (reader->isEndNode()) {
+        if (reader->is_end_node()) {
             continue;
-        } else if (reader->depth() == depth && !reader->isStartNode()) {
+        } else if (reader->depth() == depth && !reader->is_start_node()) {
             break;
-        } else if (reader->depth() == depth+1 && reader->isStartNode()) {
+        } else if (reader->depth() == depth+1 && reader->is_start_node()) {
             break;
         }
-    } while (reader->isValid() && reader->depth() >= depth);
+    } while (reader->is_valid() && reader->depth() >= depth);
 
     // get value or nullify iterator
-    if (reader->depth() >= depth && !reader->isEndNode()) {
+    if (reader->depth() >= depth && !reader->is_end_node()) {
         data = ValueWrapper(reader);
     } else {
         reader = nullptr;
@@ -172,8 +142,6 @@ ArrayIterator & ArrayIterator::operator++()
 }
 
 
-/** \brief Post-increment iterator.
- */
 ArrayIterator ArrayIterator::operator++(int)
 {
     ArrayIterator copy(*this);
@@ -183,8 +151,6 @@ ArrayIterator ArrayIterator::operator++(int)
 }
 
 
-/** \brief Swap iterators.
- */
 void ArrayIterator::swap(ArrayIterator &other)
 {
     auto tmp = other.reader;
@@ -193,14 +159,12 @@ void ArrayIterator::swap(ArrayIterator &other)
 }
 
 
-/** \brief Initializer list constructor.
- */
 ObjectIterator::ObjectIterator(TextReader *reader):
     reader(reader)
 {
-    if (reader && reader->isObject() && !reader->isEndNode()) {
+    if (reader && reader->is_object() && !reader->is_end_node()) {
         depth = reader->depth();
-        if (reader->isStartNode()) {
+        if (reader->is_start_node()) {
             operator++();
         }
     } else if (reader) {
@@ -209,43 +173,33 @@ ObjectIterator::ObjectIterator(TextReader *reader):
 }
 
 
-/** \brief Equality operator.
- */
 bool ObjectIterator::operator==(const ObjectIterator &other) const
 {
     return reader == other.reader;
 }
 
 
-/** \brief Inequality operator.
- */
 bool ObjectIterator::operator!=(const ObjectIterator &other) const
 {
     return !operator==(other);
 }
 
 
-/** \brief Dereference operator.
- */
 ObjectData & ObjectIterator::operator*()
 {
     return data;
 }
 
 
-/** \brief Dereference operator.
- */
 ObjectData * ObjectIterator::operator->()
 {
     return &data;
 }
 
 
-/** \brief Pre-increment iterator.
- */
 ObjectIterator & ObjectIterator::operator++()
 {
-    if (!reader || !reader->isValid()) {
+    if (!reader || !reader->is_valid()) {
         reader = nullptr;
         return *this;
     }
@@ -253,14 +207,14 @@ ObjectIterator & ObjectIterator::operator++()
     // seek next node
     do {
         reader->read();
-        if (reader->isEndNode()) {
+        if (reader->is_end_node()) {
             continue;
-        } else if (reader->depth() == depth && !reader->isStartNode()) {
+        } else if (reader->depth() == depth && !reader->is_start_node()) {
             break;
-        } else if (reader->depth() == depth+1 && reader->isStartNode()) {
+        } else if (reader->depth() == depth+1 && reader->is_start_node()) {
             break;
         }
-    } while (reader->isValid() && reader->depth() >= depth);
+    } while (reader->is_valid() && reader->depth() >= depth);
 
     // get value or nullify iterator
     if (reader->depth() >= depth) {
@@ -274,8 +228,6 @@ ObjectIterator & ObjectIterator::operator++()
 }
 
 
-/** \brief Post-increment iterator.
- */
 ObjectIterator ObjectIterator::operator++(int)
 {
     ObjectIterator copy(*this);
@@ -285,8 +237,6 @@ ObjectIterator ObjectIterator::operator++(int)
 }
 
 
-/** \brief Swap iterators.
- */
 void ObjectIterator::swap(ObjectIterator &other)
 {
     auto tmp = other.reader;
