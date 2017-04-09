@@ -130,7 +130,7 @@ bool TextWriter::start_object(const std::string &key)
     JSON_ACCEPTS_KEY();
 
     write_value_delimiter();
-    stream->write(key.data(), key.size());
+    detail::write_key(*stream, key);
     stream->put(KEY_DELIMITER);
     stream->put(START_OBJECT);
     node.emplace_back(NodeType::OBJECT);
@@ -177,7 +177,7 @@ bool TextWriter::start_array(const std::string &key)
     JSON_ACCEPTS_KEY();
 
     write_value_delimiter();
-    stream->write(key.data(), key.size());
+    detail::write_key(*stream, key);
     stream->put(KEY_DELIMITER);
     stream->put(START_ARRAY);
     node.emplace_back(NodeType::ARRAY);
