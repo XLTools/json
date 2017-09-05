@@ -30,7 +30,7 @@ endif()
 # DEPENDENCIES
 # ------------
 
-if(NOT TARGET Lexi)
+if(NOT TARGET lexi)
     add_subdirectory(lexi)
 endif()
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lexi/include")
